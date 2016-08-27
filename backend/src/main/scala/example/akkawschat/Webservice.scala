@@ -3,22 +3,22 @@ package example.akkawschat
 import java.util.Date
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.model.ws.{ Message, TextMessage }
+import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.stream.stage._
 
 import scala.concurrent.duration._
-
 import akka.http.scaladsl.server.Directives
-import akka.stream.Materializer
+import akka.stream.{ActorAttributes, Materializer, Supervision}
 import akka.stream.scaladsl.Flow
-
 import upickle.default._
 import shared.Protocol
 import shared.Protocol._
 
 class Webservice(implicit fm: Materializer, system: ActorSystem) extends Directives {
   val theChat = Chat.create(system)
+
   import system.dispatcher
+
   system.scheduler.schedule(15.second, 15.second) {
     theChat.injectMessage(ChatMessage(sender = "clock", s"Bling! The time is ${new Date().toString}."))
   }
@@ -49,11 +49,15 @@ class Webservice(implicit fm: Materializer, system: ActorSystem) extends Directi
         // FIXME: We need to handle TextMessage.Streamed as well.
       }
       .via(theChat.chatFlow(sender)) // ... and route them through the chatFlow ...
-      .map {
-      case msg: Protocol.Message ⇒
-        TextMessage.Strict(write(msg)) // ... pack outgoing messages into WS JSON messages ...
-    }
-      .via(reportErrorsFlow) // ... then log any processing errors on stdin
+      .map { msg ⇒ TextMessage.Strict(write(msg)) // ... pack outgoing messages into WS JSON messages ...
+    }.withAttributes(ActorAttributes.supervisionStrategy(decider))    // ... then log any processing errors on stdin
+
+  val decider: Supervision.Decider = {
+    e: Throwable =>
+      e.printStackTrace()
+      println(s"WS stream failed with $e")
+      Supervision.Resume
+  }
 
   def reportErrorsFlow[T]: Flow[T, T, Any] =
     Flow[T]
