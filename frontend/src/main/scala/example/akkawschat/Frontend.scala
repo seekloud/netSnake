@@ -32,7 +32,7 @@ object Frontend extends js.JSApp {
     val playground = dom.document.getElementById("playground")
     playground.innerHTML = s"Trying to join chat as '$name'..."
     val chat = new WebSocket(getWebsocketUri(dom.document, name))
-    chat.onopen = { (event: Event) ⇒
+    chat.onopen = { (event0: Event) ⇒
       playground.insertBefore(p("Chat connection was successful!"), playground.firstChild)
       sendButton.disabled = false
 
@@ -51,7 +51,7 @@ object Frontend extends js.JSApp {
         event.preventDefault()
       }
 
-      event
+      event0
     }
     chat.onerror = { (event: ErrorEvent) ⇒
       playground.insertBefore(p(s"Failed: code: ${event.colno}"), playground.firstChild)
