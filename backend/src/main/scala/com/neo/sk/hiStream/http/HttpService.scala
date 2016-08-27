@@ -6,6 +6,7 @@ import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.http.scaladsl.server.Directives._
 import akka.stream.{Materializer, OverflowStrategy}
 import akka.stream.scaladsl.{Flow, Sink, Source}
+import akka.util.Timeout
 
 import scala.concurrent.ExecutionContextExecutor
 
@@ -23,14 +24,29 @@ trait HttpService {
 
   implicit val materializer: Materializer
 
-  val log: LoggingAdapter
+  implicit val timeout: Timeout
 
+
+  val resourceRoutes = {
+
+
+    (path("frontend-launcher.js") & get) {
+      getFromResource("histream_frontend-launcher.js")
+
+    } ~
+    (path("frontend-fastopt.js") & get) {
+      getFromResource("histream_frontend-fastopt.js")
+    }
+
+  }
+
+  val snakeRoute = (path("snake") & get) {
+    getFromResource("web/mySnake.html")
+  }
 
   val routes =
     pathPrefix("hiStream") {
-      (path("") & get) {
-        complete("ok")
-      }
+      snakeRoute ~ resourceRoutes
     }
 
 

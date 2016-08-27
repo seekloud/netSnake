@@ -8,7 +8,7 @@ import org.scalajs.dom
 import upickle.default._
 import shared.Protocol
 
-object Frontend extends js.JSApp {
+object Frontend {
   val joinButton = dom.document.getElementById("join").asInstanceOf[HTMLButtonElement]
   val sendButton = dom.document.getElementById("send").asInstanceOf[HTMLButtonElement]
 

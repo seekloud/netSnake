@@ -1,8 +1,7 @@
+import sbt.Keys._
+
 name := "hiStream"
 
-version := "1.0.0.0"
-
-scalaVersion := "2.11.8"
 
 val scalaV = "2.11.8"
 val scalaXmlV = "1.0.4"
@@ -31,6 +30,7 @@ lazy val root = (project in file("."))
 // Scala-Js frontend
 lazy val frontend = (project in file("frontend"))
   .enablePlugins(ScalaJSPlugin)
+  .settings(name := "hiStream_Frontend")
   .settings(commonSettings: _*)
   .settings(
     persistLauncher in Compile := true,
@@ -47,14 +47,14 @@ lazy val frontend = (project in file("frontend"))
 
 
 
-val projectMainClass = "example.akkawschat.Boot"
+val projectMainClass = "com.neo.sk.hiStream.Boot"
 
 // Akka Http based backend
 lazy val backend = (project in file("backend"))
   .settings(
-    Revolver.settings.settings ,
+    Revolver.settings.settings,
     mainClass in Revolver.reStart := Some(projectMainClass)
-  )
+  ).settings(name := "hiStream_Backend")
   .settings(
     //pack
     // If you need to specify main classes manually, use packSettings and packMain
@@ -94,7 +94,7 @@ lazy val backend = (project in file("backend"))
     ),
     (resourceGenerators in Compile) <+=
     (fastOptJS in Compile in frontend, packageScalaJSLauncher in Compile in frontend)
-      .map((f1, f2) => Seq(f1.data, f2.data)),
+      .map { (f1, f2) => Seq(f1.data, f2.data) },
     watchSources <++= (watchSources in frontend)
   )
   .dependsOn(sharedJvm)
@@ -103,6 +103,7 @@ lazy val backend = (project in file("backend"))
 
 lazy val cli = (project in file("cli"))
   .settings(Revolver.settings: _*)
+  .settings(name := "hiStream_cli")
   .settings(commonSettings: _*)
   .settings(
     libraryDependencies ++= Seq(
@@ -115,15 +116,16 @@ lazy val cli = (project in file("cli"))
 
 
 
-lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared")).
-  settings(
-    scalaVersion := scalaV
-  )
+lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
+  .settings(name := "hiStream_shared")
+  .settings(commonSettings: _*)
+
 
 lazy val sharedJvm = shared.jvm
 lazy val sharedJs = shared.js
 
 def commonSettings = Seq(
+  version := "1.0.0.0",
   scalaVersion := scalaV
 )
 
