@@ -170,7 +170,7 @@ abstract class Game {
 }
 
 @JSExport
-object ScalaJSExample extends JSApp {
+object ScalaJSExample {
 
   def main(): Unit = {
     val snake = new GameHolder("snake", Snake)

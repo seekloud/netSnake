@@ -22,6 +22,7 @@ val playJsonForAkkaHttp = "1.7.0"
 
 val scalaJsDomV = "0.9.0"
 val scalaJsjqueryV = "0.9.0"
+val upickleV = "0.4.2"
 
 lazy val root = (project in file("."))
   .aggregate(frontend, backend, cli)
@@ -38,6 +39,7 @@ lazy val frontend = (project in file("frontend"))
     libraryDependencies ++= Seq(
       "org.scala-js" %%% "scalajs-dom" % scalaJsDomV,
       "be.doeraene" %%% "scalajs-jquery" % scalaJsjqueryV,
+      "com.lihaoyi" %%% "upickle" % upickleV,
       "com.lihaoyi" %%% "utest" % "0.3.0" % "test"
     )
   )
@@ -45,7 +47,7 @@ lazy val frontend = (project in file("frontend"))
 
 
 
-val projectMainClass = "com.neo.sk.hiStream.Boot"
+val projectMainClass = "example.akkawschat.Boot"
 
 // Akka Http based backend
 lazy val backend = (project in file("backend"))
@@ -87,7 +89,7 @@ lazy val backend = (project in file("backend"))
       "ch.qos.logback" % "logback-classic" % logbackV withSources(),
       "com.github.nscala-time" %% "nscala-time" % nscalaTimeV,
       "commons-codec" % "commons-codec" % codecV,
-      "commons-codec" % "commons-codec" % codecV,
+      "com.lihaoyi" %% "upickle" % upickleV,
       "org.postgresql" % "postgresql" % postgresJdbcV
     ),
     (resourceGenerators in Compile) <+=
