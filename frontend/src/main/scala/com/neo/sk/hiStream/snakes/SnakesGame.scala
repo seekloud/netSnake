@@ -8,6 +8,7 @@ import org.scalajs.dom.html._
 
 import scala.scalajs.js
 import scala.collection.mutable
+import scala.util.Random
 
 /**
   * User: Taoz
@@ -18,17 +19,20 @@ import scala.collection.mutable
 sealed trait Spot
 
 case class Body(life: Int) extends Spot
-
 case class Header(life: Int) extends Spot
+case class Apple(score: Int, life: Int) extends Spot
 
 
 case class SnakesGame(bounds: Point, resetGame: () => Unit) extends Game {
 
+  val random = new Random(System.nanoTime())
   val canvasUnit = 10
 
   val boundary = Point(bounds.x / canvasUnit, bounds.y / canvasUnit)
   var frameCount = 0l
 
+  val appleLife = 50
+  val appleSum = 6
 
   val snake = new Snake(boundary.x / 2, boundary.y / 2)
   var grid = Map[Point, Spot]()
@@ -37,7 +41,6 @@ case class SnakesGame(bounds: Point, resetGame: () => Unit) extends Game {
     frameCount += 1
 
     if (frameCount % 1 == 0) {
-
 
       println(s" +++ snake feel key: ${keysDown.lastOption}")
       val newDirection = keysDown.lastOption match {
@@ -57,11 +60,13 @@ case class SnakesGame(bounds: Point, resetGame: () => Unit) extends Game {
       grid = grid.filterNot { case (p, spot) =>
         spot match {
           case Body(life) if life < 0 => true
+          case Apple(_, life) if life < 0 => true
           case _ => false
         }
       }.map {
         case (p, Header(life)) => (p, Body(life - 1))
-        case (p, Body(life)) => (p, Body(life - 1))
+        case (p, b@Body(life)) => (p, b.copy(life - 1))
+        case (p, a@Apple(_, life)) => (p, a.copy(life = life - 1))
         case x => x
       }
 
@@ -69,15 +74,38 @@ case class SnakesGame(bounds: Point, resetGame: () => Unit) extends Game {
         case Some(x: Body) =>
           println(" --------------- hit something..........")
           resetGame()
-        case _ =>
-          snake.header = header
-          println(s" +++ header: ${snake.header}")
-          println(s" +++ bodys: ${grid.mkString(", ")}")
-          grid += snake.header -> Header(snake.length)
+        case Some(Apple(score, _)) =>
+          snake.length += score
+          grid -= header
+        case _ => //do nothing.
       }
 
+      snake.header = header
+      println(s" +++ header: ${snake.header}")
+      println(s" +++ bodys: ${grid.mkString(", ")}")
+      grid += snake.header -> Header(snake.length)
+
+      grid = seedApple(grid)
+
+    }
 
 
+
+    def seedApple(grid : collection.immutable.Map[Point, Spot] ) = {
+      val appleCount = grid.count{ case (_, a)  => a.isInstanceOf[Apple]}
+      if(appleCount < appleSum) {
+        var p = Point(random.nextInt(boundary.x), random.nextInt(boundary.y))
+        while (grid.contains(p)){
+          p = Point(random.nextInt(boundary.x), random.nextInt(boundary.y))
+        }
+        val score = random.nextDouble() match {
+          case x if x > 0.95 => 10
+          case x if x > 0.8 => 3
+          case x => 1
+        }
+        val apple = Apple(score, appleLife)
+        grid + (p -> apple)
+      } else grid
     }
 
   }
@@ -86,6 +114,7 @@ case class SnakesGame(bounds: Point, resetGame: () => Unit) extends Game {
   override def draw(ctx: CanvasRenderingContext2D): Unit = {
     ctx.fillStyle = Color.Black.toString()
     ctx.fillRect(0, 0, boundary.x * canvasUnit, boundary.y * canvasUnit)
+
 
     //println("---------------  draw   ------------------")
     ctx.fillStyle = Color(200, 200, 200).toString()
@@ -99,10 +128,25 @@ case class SnakesGame(bounds: Point, resetGame: () => Unit) extends Game {
           ctx.fillStyle = Color.Green.toString()
           ctx.fillRect(x * canvasUnit + 1, y * canvasUnit + 1, canvasUnit - 1, canvasUnit - 1)
           ctx.restore()
-
-
+        case Apple(score, life) =>
+          ctx.save()
+          ctx.fillStyle = score match {
+            case 10 => Color.Yellow.toString()
+            case 3 => Color.Blue.toString()
+            case _ => Color.Red.toString()
+          }
+          ctx.fillRect(x * canvasUnit + 1, y * canvasUnit + 1, canvasUnit - 1, canvasUnit - 1)
+          ctx.restore()
       }
     }
+
+    // Score
+    ctx.fillStyle = "rgb(250, 250, 250)"
+    ctx.font = "24px Helvetica"
+    ctx.textAlign = "left"
+    ctx.textBaseline = "top"
+    ctx.fillText("snake length: " + snake.length, 10, 10)
+
   }
 
 
@@ -141,7 +185,7 @@ case class SnakesGame(bounds: Point, resetGame: () => Unit) extends Game {
 
 class Snake(x: Int, y: Int) {
 
-  var length = 50
+  var length = 5
   var direction = Point(1, 0)
   var header = Point(x, y)
 
