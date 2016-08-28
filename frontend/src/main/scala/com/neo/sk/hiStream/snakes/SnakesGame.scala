@@ -1,8 +1,11 @@
 package com.neo.sk.hiStream.snakes
 
 import org.scalajs.dom
+import org.scalajs.dom.CanvasRenderingContext2D
 import org.scalajs.dom.ext.KeyCode
+import org.scalajs.dom.ext.Color
 import org.scalajs.dom.html._
+
 import scala.scalajs.js
 import scala.collection.mutable
 
@@ -16,76 +19,50 @@ sealed trait Spot
 
 case class Body(life: Int) extends Spot
 
-object SnakesGame extends js.JSApp {
-
-  def main(): Unit = {
-    val snakeGame = new SnakesGame("snake")
-    dom.window.setInterval(() => snakeGame.gameLoop(), 1000)
-  }
-
-}
 
 
-class SnakesGame(canvasName: String) {
+case class SnakesGame(bounds: Point, resetGame: () => Unit) extends Game {
 
-  private[this] val canvas = dom.document.getElementById(canvasName).asInstanceOf[Canvas]
-  private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+  val canvasUnit = 10
 
-  canvas.width = 1200
-  canvas.height = 600
-
-  val groundWidth = 120
-  val groundHeight = 80
+  val boundary = Point(bounds.x / canvasUnit, bounds.y / canvasUnit)
   var frameCount = 0l
 
 
-  // Handle keyboard controls
-  val keysDown = new mutable.LinkedHashSet[Int]()
-
-  dom.window.addEventListener("keydown", listener = (e: dom.KeyboardEvent) => {
-    keysDown += e.keyCode
-  }, useCapture = false)
-
-  dom.window.addEventListener("keyup", (e: dom.KeyboardEvent) => {
-    keysDown -= e.keyCode
-  }, false)
-
-
+  val snake = new Snake(boundary.x / 2, boundary.y / 2)
   var grid = Map[Point, Spot]()
-  var snake = new Snake()
 
-  def gameLoop() = {
-    draw()
-    update()
-  }
-
-
-  def update() = {
+  override def update(keysDown: List[Int]): Unit = {
     frameCount += 1
 
-    if (frameCount % 2 == 0) {
+    if (frameCount % 1 == 0) {
+      println(s" +++ snake feel key: ${keysDown.lastOption}")
+      val newDirection = keysDown.lastOption match {
+        case Some(KeyCode.Left) => Point(-1, 0)
+        case Some(KeyCode.Right) => Point(1, 0)
+        case Some(KeyCode.Up) => Point(0, -1)
+        case Some(KeyCode.Down) => Point(0, 1)
+        case _ => snake.direction
+      }
 
-      println(s"header: ${snake.header}")
-      println(s"bodys: ${grid.mkString(", ")}")
-      val header = snake.header + snake.direction
+      if (newDirection + snake.direction != Point(0, 0)) {
+        snake.direction = newDirection
+      }
 
+      val header = ((snake.header + snake.direction) + boundary) % boundary
       grid.get(header) match {
-        case Some(Body(_)) => reset()
+        case Some(Body(_)) =>
+          println(" --------------- hit body..........")
+          resetGame()
         case None =>
           grid += header -> Body(snake.length)
       }
       snake.header = header
 
-      val newDirection =
-        if (keysDown(KeyCode.Left)) Point(-1, 0)
-        else if (keysDown(KeyCode.Right)) Point(1, 0)
-        else if (keysDown(KeyCode.Up)) Point(0, -1)
-        else if (keysDown(KeyCode.Down)) Point(0, 1)
-        else snake.direction
+      println(s" +++ header: ${snake.header}")
+      println(s" +++ bodys: ${grid.mkString(", ")}")
 
-      if (newDirection + snake.direction != Point(0, 0)) {
-        snake.direction = newDirection
-      }
+
 
       grid = grid.filterNot { case (p, spot) =>
         spot match {
@@ -101,39 +78,60 @@ class SnakesGame(canvasName: String) {
   }
 
 
-  def draw() = {
-    ctx.fillStyle = "rgb(0, 0, 0)"
-    ctx.fillRect(0, 0, 1200, 800)
+  override def draw(ctx: CanvasRenderingContext2D): Unit = {
+    ctx.fillStyle = Color.Black.toString()
+    ctx.fillRect(0, 0, boundary.x * canvasUnit, boundary.y * canvasUnit)
 
-    println("---------------  draw   ------------------")
+    //println("---------------  draw   ------------------")
+    ctx.fillStyle = Color(200, 200, 200).toString()
     grid.foreach { case (p@Point(x, y), spot) =>
       spot match {
         case Body(life) =>
-          println(s"draw body at $p body[$life]")
-          ctx.fillStyle = "rgb(200, 200, 200)"
-          ctx.fillRect(x * 10, y * 10, 10, 10)
+          //println(s"draw body at $p body[$life]")
+          ctx.fillRect(x * canvasUnit + 1, y * canvasUnit + 1, canvasUnit - 1, canvasUnit - 1)
       }
     }
   }
 
-  def reset() = {
-    snake = new Snake
+
+  def drawTest1(ctx: CanvasRenderingContext2D) = {
+    ctx.fillStyle = Color.Black.toString()
+    ctx.fillRect(0, 0, 1200, 800)
+
+    val x = 10
+    val y = 10
+    val w = 10
+    val h = 10
+
+    ctx.fillStyle = Color(200, 200, 200).toString()
+    ctx.fillRect(x, y, w, h)
+  }
+
+  var count = 1
+
+  def drawTest2(ctx: CanvasRenderingContext2D) = {
+    println(s"drawTest2 count=$count")
+    ctx.fillStyle = Color.Black.toString()
+    ctx.fillRect(0, 0, 1200, 800)
+
+    val x = 10
+    val y = 10
+    val w = 10
+    val h = 10
+
+    ctx.fillStyle = Color(200, 200, 200).toString()
+    ctx.fillRect(x * count, y * count, w, h)
+    count += 1
   }
 
 }
 
 
-class Snake() {
+class Snake(x: Int, y: Int) {
 
-  var length = 5
+  var length = 20
   var direction = Point(1, 0)
-  var header = Point(60, 40)
+  var header = Point(x, y)
 
 }
 
-case class Point(x: Int, y: Int) {
-  def +(other: Point) = Point(x + other.x, y + other.y)
-
-  def -(other: Point) = Point(x - other.x, y - other.y)
-
-}

@@ -2,12 +2,12 @@ package example
 
 import scala.scalajs.js._
 import org.scalajs.dom
-import org.scalajs.dom.html._
 
 import scala.collection.mutable
 import scala.scalajs.js.Any._
 import scala.scalajs.js.Math
 import annotation.JSExport
+import org.scalajs.dom.html._
 
 
 //https://github.com/lihaoyi/scala-js-games/blob/master/src/main/scala/example/ScalaJSExample.scala

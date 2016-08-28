@@ -6,18 +6,16 @@ name := "hiStream"
 val scalaV = "2.11.8"
 val scalaXmlV = "1.0.4"
 val akkaV = "2.4.9"
-val scalaTestV = "2.2.5"
 val hikariCpV = "2.4.3"
 val slickV = "3.1.1"
 val logbackV = "1.1.3"
 val nscalaTimeV = "2.10.0"
 val codecV = "1.9"
 val sprayV = "1.3.3"
-val leveldb = "0.7"
-val leveldbjni = "1.8"
 val playComponentV = "2.5.4"
 val postgresJdbcV = "9.4.1208"
 val playJsonForAkkaHttp = "1.7.0"
+
 
 val scalaJsDomV = "0.9.0"
 val scalaJsjqueryV = "0.9.0"
@@ -32,6 +30,7 @@ lazy val frontend = (project in file("frontend"))
   .enablePlugins(ScalaJSPlugin)
   .settings(name := "hiStream_Frontend")
   .settings(commonSettings: _*)
+  .settings(skip in packageJSDependencies := false )
   .settings(
     persistLauncher in Compile := true,
     persistLauncher in Test := false,
@@ -71,7 +70,6 @@ lazy val backend = (project in file("backend"))
       "org.scala-lang" % "scala-reflect" % scalaV,
       "org.scala-lang.modules" % "scala-xml_2.11" % scalaXmlV,
       "com.typesafe.akka" %% "akka-actor" % akkaV withSources() withSources(),
-      "com.typesafe.akka" %% "akka-remote" % akkaV withSources(),
       "com.typesafe.akka" %% "akka-slf4j" % akkaV,
       "com.typesafe.akka" %% "akka-stream" % akkaV,
       "com.typesafe.akka" %% "akka-http-core" % akkaV withSources(),
@@ -83,8 +81,6 @@ lazy val backend = (project in file("backend"))
       "com.typesafe.slick" %% "slick-codegen" % slickV,
       "com.typesafe.play" %% "play-ws" % playComponentV,
       "com.typesafe.play" %% "play-json" % playComponentV,
-      "org.fusesource.leveldbjni" % "leveldbjni-all" % leveldbjni,
-      "org.scalatest" %% "scalatest" % scalaTestV % "test",
       "com.zaxxer" % "HikariCP" % hikariCpV,
       "ch.qos.logback" % "logback-classic" % logbackV withSources(),
       "com.github.nscala-time" %% "nscala-time" % nscalaTimeV,
