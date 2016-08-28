@@ -18,7 +18,7 @@ object GameHolder extends js.JSApp {
 
     val holder = new GameHolder("snake", SnakesGame)
 
-    dom.window.setInterval(() => holder.gameLoop(), 500)
+    dom.window.setInterval(() => holder.gameLoop(), 100)
     //dom.window.setInterval(() => snakeGame.drawTest2(), 3000)
     //snakeGame.draw()
   }

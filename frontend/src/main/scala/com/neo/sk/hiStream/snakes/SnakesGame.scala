@@ -19,6 +19,7 @@ sealed trait Spot
 
 case class Body(life: Int) extends Spot
 
+case class Header(life: Int) extends Spot
 
 
 case class SnakesGame(bounds: Point, resetGame: () => Unit) extends Game {
@@ -36,6 +37,8 @@ case class SnakesGame(bounds: Point, resetGame: () => Unit) extends Game {
     frameCount += 1
 
     if (frameCount % 1 == 0) {
+
+
       println(s" +++ snake feel key: ${keysDown.lastOption}")
       val newDirection = keysDown.lastOption match {
         case Some(KeyCode.Left) => Point(-1, 0)
@@ -50,19 +53,6 @@ case class SnakesGame(bounds: Point, resetGame: () => Unit) extends Game {
       }
 
       val header = ((snake.header + snake.direction) + boundary) % boundary
-      grid.get(header) match {
-        case Some(Body(_)) =>
-          println(" --------------- hit body..........")
-          resetGame()
-        case None =>
-          grid += header -> Body(snake.length)
-      }
-      snake.header = header
-
-      println(s" +++ header: ${snake.header}")
-      println(s" +++ bodys: ${grid.mkString(", ")}")
-
-
 
       grid = grid.filterNot { case (p, spot) =>
         spot match {
@@ -70,9 +60,24 @@ case class SnakesGame(bounds: Point, resetGame: () => Unit) extends Game {
           case _ => false
         }
       }.map {
+        case (p, Header(life)) => (p, Body(life - 1))
         case (p, Body(life)) => (p, Body(life - 1))
         case x => x
       }
+
+      grid.get(header) match {
+        case Some(x: Body) =>
+          println(" --------------- hit something..........")
+          resetGame()
+        case _ =>
+          snake.header = header
+          println(s" +++ header: ${snake.header}")
+          println(s" +++ bodys: ${grid.mkString(", ")}")
+          grid += snake.header -> Header(snake.length)
+      }
+
+
+
     }
 
   }
@@ -89,6 +94,13 @@ case class SnakesGame(bounds: Point, resetGame: () => Unit) extends Game {
         case Body(life) =>
           //println(s"draw body at $p body[$life]")
           ctx.fillRect(x * canvasUnit + 1, y * canvasUnit + 1, canvasUnit - 1, canvasUnit - 1)
+        case Header(life) =>
+          ctx.save()
+          ctx.fillStyle = Color.Green.toString()
+          ctx.fillRect(x * canvasUnit + 1, y * canvasUnit + 1, canvasUnit - 1, canvasUnit - 1)
+          ctx.restore()
+
+
       }
     }
   }
@@ -129,7 +141,7 @@ case class SnakesGame(bounds: Point, resetGame: () => Unit) extends Game {
 
 class Snake(x: Int, y: Int) {
 
-  var length = 20
+  var length = 50
   var direction = Point(1, 0)
   var header = Point(x, y)
 
