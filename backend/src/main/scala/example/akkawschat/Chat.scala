@@ -61,7 +61,7 @@ object Chat {
         // messages fast enough.
         val out =
         Source.actorRef[Protocol.ChatMessage](1, OverflowStrategy.fail)
-          .mapMaterializedValue(chatActor ! NewParticipant(sender, _))
+          .mapMaterializedValue{outActor => chatActor ! NewParticipant(sender, outActor); outActor}
 
         Flow.fromSinkAndSource(in, out)
       }
