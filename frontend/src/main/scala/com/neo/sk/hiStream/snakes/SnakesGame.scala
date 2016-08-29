@@ -1,13 +1,10 @@
 package com.neo.sk.hiStream.snakes
 
-import org.scalajs.dom
+import com.neo.sk.hiStream.snake._
 import org.scalajs.dom.CanvasRenderingContext2D
-import org.scalajs.dom.ext.KeyCode
-import org.scalajs.dom.ext.Color
+import org.scalajs.dom.ext.{Color, KeyCode}
 import org.scalajs.dom.html._
 
-import scala.scalajs.js
-import scala.collection.mutable
 import scala.util.Random
 
 /**
@@ -16,11 +13,7 @@ import scala.util.Random
   * Time: 8:50 PM
   */
 
-sealed trait Spot
 
-case class Body(life: Int) extends Spot
-case class Header(life: Int) extends Spot
-case class Apple(score: Int, life: Int) extends Spot
 
 
 case class SnakesGame(bounds: Point, resetGame: () => Unit) extends Game {
@@ -183,11 +176,4 @@ case class SnakesGame(bounds: Point, resetGame: () => Unit) extends Game {
 }
 
 
-class Snake(x: Int, y: Int) {
-
-  var length = 5
-  var direction = Point(1, 0)
-  var header = Point(x, y)
-
-}
 

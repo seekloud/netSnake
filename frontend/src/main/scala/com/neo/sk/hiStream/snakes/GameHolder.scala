@@ -1,5 +1,6 @@
 package com.neo.sk.hiStream.snakes
 
+import com.neo.sk.hiStream.snake.Point
 import org.scalajs.dom
 import org.scalajs.dom.ext.{Color, KeyCode}
 import org.scalajs.dom.html._
@@ -111,11 +112,4 @@ trait Game {
 }
 
 
-case class Point(x: Int, y: Int) {
-  def +(other: Point) = Point(x + other.x, y + other.y)
 
-  def -(other: Point) = Point(x - other.x, y - other.y)
-
-  def %(other: Point) = Point(x % other.x, y % other.y)
-
-}
