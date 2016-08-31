@@ -31,10 +31,15 @@ package object snake {
     var header = Point(x, y)
   }
 
+  case class SnakeData(
+    id: Long,
+    name: String,
+    header: Point = Point(20, 20),
+    direction: Point = Point(1, 0),
+    length: Int = 4)
+
 
   sealed trait GameOutPut
-
-  case class SnakeData(id: Long, name: String, header: Point, direction: Point, length: Int)
 
   case class GridDataSync(
     snakes: Seq[SnakeData],
@@ -43,5 +48,8 @@ package object snake {
     applePositions: Seq[Point],
     apples:Seq[Apple]
   ) extends GameOutPut
+
+  case class NewSnakeJoined(id: String, name: String)
+  case class SnakeLeft(id: String, name: String)
 
 }
