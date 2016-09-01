@@ -1,4 +1,4 @@
-package com.neo.sk.hiStream.snakes
+package com.neo.sk.hiStream.mysnake
 
 import com.neo.sk.hiStream.snake.Point
 import org.scalajs.dom

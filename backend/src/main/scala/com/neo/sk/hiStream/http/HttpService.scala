@@ -32,7 +32,6 @@ trait HttpService {
 
     (path("frontend-launcher.js") & get) {
       getFromResource("histream_frontend-launcher.js")
-
     } ~
     (path("frontend-fastopt.js") & get) {
       getFromResource("histream_frontend-fastopt.js")
@@ -40,8 +39,13 @@ trait HttpService {
 
   }
 
-  val snakeRoute = (path("snake") & get) {
-    getFromResource("web/mySnake.html")
+  val snakeRoute = {
+    (path("snake") & get) {
+      getFromResource("web/mySnake.html")
+    } ~ (path("testPage") & get) {
+      getFromResource("web/test1.html")
+    }
+
   }
 
   val routes =

@@ -1,6 +1,6 @@
-package com.neo.sk.hiStream.snakes
+package com.neo.sk.hiStream.mysnake
 
-import com.neo.sk.hiStream.snake._
+import com.neo.sk.hiStream.snake.{Body, _}
 import org.scalajs.dom.CanvasRenderingContext2D
 import org.scalajs.dom.ext.{Color, KeyCode}
 import org.scalajs.dom.html._

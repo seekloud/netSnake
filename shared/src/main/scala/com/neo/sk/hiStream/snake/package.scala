@@ -39,17 +39,7 @@ package object snake {
     length: Int = 4)
 
 
-  sealed trait GameOutPut
 
-  case class GridDataSync(
-    snakes: Seq[SnakeData],
-    bodyPositions:Seq[Point],
-    bodyLives: Seq[Int],
-    applePositions: Seq[Point],
-    apples:Seq[Apple]
-  ) extends GameOutPut
 
-  case class NewSnakeJoined(id: String, name: String)
-  case class SnakeLeft(id: String, name: String)
 
 }
