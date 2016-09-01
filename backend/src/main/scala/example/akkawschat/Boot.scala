@@ -5,7 +5,7 @@ import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import scala.util.{ Success, Failure }
 
-object Boot extends App {
+object Boot{
   implicit val system = ActorSystem()
   import system.dispatcher
   implicit val materializer = ActorMaterializer()
@@ -14,15 +14,19 @@ object Boot extends App {
   val interface = config.getString("app.http.interface")
   val port = config.getInt("app.http.port")
 
-  val service = new Webservice
 
-  val binding = Http().bindAndHandle(service.route, interface, port)
-  binding.onComplete {
-    case Success(binding) ⇒
-      val localAddress = binding.localAddress
-      println(s"Server is listening on ${localAddress.getHostName}:${localAddress.getPort}")
-    case Failure(e) ⇒
-      println(s"Binding failed with ${e.getMessage}")
-      system.terminate()
+  def main(args: Array[String]): Unit = {
+  val service = new Webservice
+    val binding = Http().bindAndHandle(service.route, interface, port)
+    binding.onComplete {
+      case Success(binding) ⇒
+        val localAddress = binding.localAddress
+        println(s"Server is listening on ${localAddress.getHostName}:${localAddress.getPort}")
+      case Failure(e) ⇒
+        println(s"Binding failed with ${e.getMessage}")
+        system.terminate()
+    }
   }
+
+
 }

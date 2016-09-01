@@ -1,10 +1,10 @@
-package com.neo.sk.hiStream.snake
+package com.neo.sk.hiStream.snake.scalajs
 
+import com.neo.sk.hiStream.snake.{Protocol, scalajs}
 import org.scalajs.dom
 import org.scalajs.dom.ext.{Color, KeyCode}
 import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
-import com.neo.sk.hiStream.snake.Protocol
 import upickle.default._
 
 import scala.scalajs.js
@@ -57,7 +57,7 @@ object NetGameHolder extends js.JSApp {
     joinButton.disabled = true
     val playground = dom.document.getElementById("playground")
     playground.innerHTML = s"Trying to join game as '$name'..."
-    val gameStream = new WebSocket(getWebsocketUri(dom.document, name))
+    val gameStream = new WebSocket(getWebSocketUri(dom.document, name))
     gameStream.onopen = { (event0: Event) =>
       drawGameOn()
       playground.insertBefore(p("Game connection was successful!"), playground.firstChild)
@@ -88,8 +88,8 @@ object NetGameHolder extends js.JSApp {
       val wsMsg = read[Protocol.GameMessage](event.data.toString)
       wsMsg match {
         case Protocol.TextMsg(message) => writeToArea(s"MESSAGE: $message")
-        case Protocol.NewSnakeJoined(id, name) => writeToArea(s"$name joined!")
-        case Protocol.SnakeLeft(id, name) => writeToArea(s"$name left!")
+        case Protocol.NewSnakeJoined(id, user) => writeToArea(s"$user joined!")
+        case Protocol.SnakeLeft(id, user) => writeToArea(s"$user left!")
         case data: Protocol.GridDataSync => writeToArea(s"data got: $data")
       }
     }
@@ -105,10 +105,9 @@ object NetGameHolder extends js.JSApp {
       playground.insertBefore(p(text), playground.firstChild)
   }
 
-  def getWebsocketUri(document: Document, nameOfChatParticipant: String): String = {
+  def getWebSocketUri(document: Document, nameOfChatParticipant: String): String = {
     val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
-
-    s"$wsProtocol://${dom.document.location.host}/chat?name=$nameOfChatParticipant"
+    s"$wsProtocol://${dom.document.location.host}/hiStream/netSnake/join?name=$nameOfChatParticipant"
   }
 
   def p(msg: String) = {

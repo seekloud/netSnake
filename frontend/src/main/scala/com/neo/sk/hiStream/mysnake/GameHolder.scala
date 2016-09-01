@@ -14,7 +14,7 @@ import scala.scalajs.js
   * Time: 11:10 AM
   */
 
-object GameHolder extends js.JSApp {
+object GameHolder{
   def main(): Unit = {
 
     val holder = new GameHolder("snake", SnakesGame)

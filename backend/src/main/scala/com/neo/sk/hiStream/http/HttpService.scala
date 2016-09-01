@@ -4,9 +4,10 @@ import akka.actor.{ActorRef, ActorSystem}
 import akka.event.LoggingAdapter
 import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.http.scaladsl.server.Directives._
-import akka.stream.{Materializer, OverflowStrategy}
+import akka.stream.{ActorAttributes, Materializer, OverflowStrategy, Supervision}
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.util.Timeout
+import upickle.default._
 
 import scala.concurrent.ExecutionContextExecutor
 
@@ -15,7 +16,7 @@ import scala.concurrent.ExecutionContextExecutor
   * Date: 8/26/2016
   * Time: 10:27 PM
   */
-trait HttpService {
+trait HttpService extends SnakeService{
 
 
   implicit val system: ActorSystem
@@ -42,27 +43,26 @@ trait HttpService {
   val snakeRoute = {
     (path("snake") & get) {
       getFromResource("web/mySnake.html")
-    } ~ (path("testPage") & get) {
-      getFromResource("web/test1.html")
     }
-
   }
+
 
   val routes =
     pathPrefix("hiStream") {
-      snakeRoute ~ resourceRoutes
+      snakeRoute ~
+      netSnakeRoute ~
+      resourceRoutes
     }
 
 
-  val f = Flow[Message].collect {
-    case msg: TextMessage => ""
-  }
+
 
   def tmp = {
     val out = Source.empty
     val in = Sink.ignore
     Flow.fromSinkAndSource(in, out)
   }
+
 
   def tmp2 = {
 
