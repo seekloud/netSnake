@@ -9,6 +9,7 @@ import akka.stream.{ActorAttributes, Materializer, Supervision}
 import akka.stream.scaladsl.Flow
 import akka.util.Timeout
 import com.neo.sk.hiStream.snake.PlayGround
+import org.slf4j.LoggerFactory
 import upickle.default._
 
 import scala.concurrent.ExecutionContextExecutor
@@ -28,9 +29,11 @@ trait SnakeService {
 
   implicit val timeout: Timeout
 
-  lazy val playGround = PlayGround.craete(system)
+  lazy val playGround = PlayGround.create(system)
 
   val idGenerator = new AtomicInteger(1000000)
+
+  private[this] val log = LoggerFactory.getLogger("com.neo.sk.hiStream.http.SnakeService")
 
 
   val netSnakeRoute = {
@@ -40,17 +43,20 @@ trait SnakeService {
       } ~
       path("join") {
         parameter('name) { name =>
-          handleWebSocketMessages(websocketChatFlow(sender = name))
+          handleWebSocketMessages(webSocketChatFlow(sender = name))
         }
       }
     }
   }
 
 
-  def websocketChatFlow(sender: String): Flow[Message, Message, Any] =
+  def webSocketChatFlow(sender: String): Flow[Message, Message, Any] =
     Flow[Message]
       .collect {
-        case TextMessage.Strict(msg) ⇒ msg // unpack incoming WS text messages...
+        case TextMessage.Strict(msg) =>
+          log.debug(s"msg from webSocket: $msg")
+          msg
+        // unpack incoming WS text messages...
         // This will lose (ignore) messages not received in one chunk (which is
         // unlikely because chat messages are small) but absolutely possible
         // FIXME: We need to handle TextMessage.Streamed as well.

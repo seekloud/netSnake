@@ -1,6 +1,5 @@
 package com.neo.sk.hiStream
 
-import sun.security.util.Length
 
 
 /**
@@ -11,10 +10,19 @@ import sun.security.util.Length
 package object snake {
 
   sealed trait Spot
-  case class Body(life: Int) extends Spot
-  case class Header(life: Int) extends Spot
+  case class Body(id: Long, life: Int) extends Spot
+  case class Header(id: Long, life: Int) extends Spot
   case class Apple(score: Int, life: Int) extends Spot
 
+
+  case class BodyDetail(id: Long, life: Int, x: Int, y: Int)
+  case class AppleDetail(score: Long, life: Int, x: Int, y: Int)
+
+  case class GridDataSync(
+    snakes: List[SnakeData],
+    bodyDetails: List[BodyDetail],
+    appleDetails: List[AppleDetail]
+  )
 
   case class Point(x: Int, y: Int) {
     def +(other: Point) = Point(x + other.x, y + other.y)

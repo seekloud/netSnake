@@ -29,6 +29,8 @@ object NetGameHolder extends js.JSApp {
   @scala.scalajs.js.annotation.JSExport
   override def main(): Unit = {
 
+    drawGameOff()
+
     joinButton.onclick = { (event: MouseEvent) =>
       joinGame(nameField.value)
       event.preventDefault()
@@ -52,6 +54,11 @@ object NetGameHolder extends js.JSApp {
     ctx.fillRect(0, 0, 400, 50)
   }
 
+  //TODO here
+  def drawGrid(data: Protocol.GridDataMessage): Unit = {
+
+  }
+
 
   def joinGame(name: String): Unit = {
     joinButton.disabled = true
@@ -66,10 +73,9 @@ object NetGameHolder extends js.JSApp {
         (e: dom.KeyboardEvent) => {
           println(s"keydown: ${e.keyCode}")
           if (watchKeys.contains(e.keyCode)) {
-
+            println(s"got key: [${e.keyCode}]")
+            gameStream.send(e.keyCode.toString)
             //TODO send key
-
-
             e.preventDefault()
           }
         }
@@ -90,9 +96,12 @@ object NetGameHolder extends js.JSApp {
         case Protocol.TextMsg(message) => writeToArea(s"MESSAGE: $message")
         case Protocol.NewSnakeJoined(id, user) => writeToArea(s"$user joined!")
         case Protocol.SnakeLeft(id, user) => writeToArea(s"$user left!")
-        case data: Protocol.GridDataSync => writeToArea(s"data got: $data")
+        case data: Protocol.GridDataMessage => writeToArea(s"data got: $data")
+          drawGrid(data)
       }
     }
+
+
 
     gameStream.onclose = { (event: Event) =>
       drawGameOff()

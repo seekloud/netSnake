@@ -6,15 +6,12 @@ package com.neo.sk.hiStream.snake
   * Time: 9:40 PM
   */
 object Protocol {
+
   sealed trait GameMessage
 
-  case class GridDataSync(
+  case class GridDataMessage(
     uid: Long,
-    snakes: Seq[SnakeData],
-    bodyPositions:Seq[Point],
-    bodyLives: Seq[Int],
-    applePositions: Seq[Point],
-    apples:Seq[Apple]
+    data: GridDataSync
   ) extends GameMessage
 
   case class TextMsg(
@@ -22,6 +19,7 @@ object Protocol {
   ) extends GameMessage
 
   case class NewSnakeJoined(id: Long, name: String) extends GameMessage
+
   case class SnakeLeft(id: Long, name: String) extends GameMessage
 
 }

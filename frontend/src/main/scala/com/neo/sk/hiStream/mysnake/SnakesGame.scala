@@ -52,13 +52,13 @@ case class SnakesGame(bounds: Point, resetGame: () => Unit) extends Game {
 
       grid = grid.filterNot { case (p, spot) =>
         spot match {
-          case Body(life) if life < 0 => true
+          case Body(_, life) if life < 0 => true
           case Apple(_, life) if life < 0 => true
           case _ => false
         }
       }.map {
-        case (p, Header(life)) => (p, Body(life - 1))
-        case (p, b@Body(life)) => (p, b.copy(life - 1))
+        case (p, Header(id, life)) => (p, Body(id, life - 1))
+        case (p, b@Body(_, life)) => (p, b.copy(life - 1))
         case (p, a@Apple(_, life)) => (p, a.copy(life = life - 1))
         case x => x
       }
@@ -76,7 +76,7 @@ case class SnakesGame(bounds: Point, resetGame: () => Unit) extends Game {
       snake.header = header
       println(s" +++ header: ${snake.header}")
       println(s" +++ bodys: ${grid.mkString(", ")}")
-      grid += snake.header -> Header(snake.length)
+      grid += snake.header -> Header(1l, snake.length)
 
       grid = seedApple(grid)
 
@@ -113,10 +113,10 @@ case class SnakesGame(bounds: Point, resetGame: () => Unit) extends Game {
     ctx.fillStyle = Color(200, 200, 200).toString()
     grid.foreach { case (p@Point(x, y), spot) =>
       spot match {
-        case Body(life) =>
+        case Body(_, life) =>
           //println(s"draw body at $p body[$life]")
           ctx.fillRect(x * canvasUnit + 1, y * canvasUnit + 1, canvasUnit - 1, canvasUnit - 1)
-        case Header(life) =>
+        case Header(_, life) =>
           ctx.save()
           ctx.fillStyle = Color.Green.toString()
           ctx.fillRect(x * canvasUnit + 1, y * canvasUnit + 1, canvasUnit - 1, canvasUnit - 1)
