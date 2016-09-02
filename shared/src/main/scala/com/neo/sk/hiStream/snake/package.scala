@@ -29,6 +29,8 @@ package object snake {
 
     def -(other: Point) = Point(x - other.x, y - other.y)
 
+    def *(n: Int) = Point(x * n, y * n)
+
     def %(other: Point) = Point(x % other.x, y % other.y)
   }
 
@@ -45,6 +47,12 @@ package object snake {
     header: Point = Point(20, 20),
     direction: Point = Point(1, 0),
     length: Int = 4)
+
+
+  object Boundary{
+    val w = 150
+    val h = 70
+  }
 
 
 

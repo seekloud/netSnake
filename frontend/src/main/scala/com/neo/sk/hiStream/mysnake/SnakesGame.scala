@@ -12,10 +12,6 @@ import scala.util.Random
   * Date: 8/27/2016
   * Time: 8:50 PM
   */
-
-
-
-
 case class SnakesGame(bounds: Point, resetGame: () => Unit) extends Game {
 
   val random = new Random(System.nanoTime())
@@ -77,7 +73,6 @@ case class SnakesGame(bounds: Point, resetGame: () => Unit) extends Game {
       println(s" +++ header: ${snake.header}")
       println(s" +++ bodys: ${grid.mkString(", ")}")
       grid += snake.header -> Header(1l, snake.length)
-
       grid = seedApple(grid)
 
     }

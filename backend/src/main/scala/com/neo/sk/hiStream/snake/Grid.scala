@@ -4,6 +4,8 @@ import java.awt.event.KeyEvent
 
 import org.slf4j.LoggerFactory
 
+import scala.util.Random
+
 
 /**
   * User: Taoz
@@ -15,12 +17,26 @@ class Grid(boundary: Point) {
 
   val log = LoggerFactory.getLogger(this.getClass)
 
+  val defaultLength = 5
+  val appleNum = 8
+  val appleLife = 50
+
   private[this] var grid = Map[Point, Spot]()
   private[this] var snakes = Map.empty[Long, SnakeData]
   private[this] var actionMap = Map.empty[Long, Int]
+  private[this] var waitingJoin = Map.empty[Long, String]
 
 
-  def addSnake(id: Long, name: String) = snakes += id -> SnakeData(id, name)
+  def addSnake(id: Long, name: String) = waitingJoin += (id -> name)
+
+  private[this] def genWaitingSnake() = {
+    waitingJoin.filterNot(kv => snakes.contains(kv._1)).foreach { case (id, name) =>
+      val header = randomEmptyPoint()
+      grid += header -> Body(id, defaultLength)
+      snakes += id -> SnakeData(id, name, header)
+    }
+    waitingJoin = Map.empty[Long, String]
+  }
 
 
   def removeSnake(id: Long): Option[SnakeData] = {
@@ -38,23 +54,48 @@ class Grid(boundary: Point) {
   def update() = {
     updateSnakes()
     updateSpots()
+    genWaitingSnake()
   }
 
   private[this] def updateSpots() = {
     println(s"grid: ${grid.mkString(";")}")
+    var appleCount = 0
     grid = grid.filter { case (p, spot) =>
       spot match {
         case Body(id, life) if life >= 0 && snakes.contains(id) => true
         case Apple(_, life) if life >= 0 => true
-        case Header(id, _) if snakes.contains(id) => true
+        //case Header(id, _) if snakes.contains(id) => true
         case _ => false
       }
     }.map {
-      case (p, Header(id, life)) => (p, Body(id, life - 1))
+      //case (p, Header(id, life)) => (p, Body(id, life - 1))
       case (p, b@Body(_, life)) => (p, b.copy(life = life - 1))
-      case (p, a@Apple(_, life)) => (p, a.copy(life = life - 1))
+      case (p, a@Apple(_, life)) =>
+        appleCount += 1
+        (p, a.copy(life = life - 1))
       case x => x
     }
+
+    if(appleCount < appleNum) {
+      val p = randomEmptyPoint()
+      val score = random.nextDouble() match {
+        case x if x > 0.95 => 10
+        case x if x > 0.8 => 5
+        case x => 1
+      }
+      val apple = Apple(score, appleLife)
+      grid += (p -> apple)
+    }
+  }
+
+  val random = new Random(System.nanoTime())
+
+  def randomEmptyPoint(): Point = {
+    var p = Point(random.nextInt(boundary.x), random.nextInt(boundary.y))
+    while (grid.contains(p)) {
+      p = Point(random.nextInt(boundary.x), random.nextInt(boundary.y))
+    }
+    p
   }
 
 
@@ -77,7 +118,8 @@ class Grid(boundary: Point) {
           snake.direction
         }
       }
-      val newHeader = ((snake.header + snake.direction) + boundary) % boundary
+
+      val newHeader = ((snake.header + newDirection) + boundary) % boundary
 
       grid.get(newHeader) match {
         case Some(x: Body) =>
@@ -94,15 +136,14 @@ class Grid(boundary: Point) {
 
     val updatedSnakes = snakes.values.flatMap(updateASnake)
 
-    actionMap = Map.empty
 
     //if two (or more) headers go to the same point,
     val snakesInDanger = updatedSnakes.groupBy(_.header).filter(_._2.size > 1)
-    val deadSnakes = snakesInDanger.values.flatMap(_.toSeq.sortBy(_.id).reverse.tail).map(_.id).toSet
+    val deadSnakes = snakesInDanger.values.flatMap(_.toSeq.sortBy(_.length).tail).map(_.id).toSet
 
 
     val newSnakes = updatedSnakes.filterNot(s => deadSnakes.contains(s.id))
-    grid ++= newSnakes.map(s => s.header -> Header(s.id, s.length))
+    grid ++= newSnakes.map(s => s.header -> Body(s.id, s.length))
     snakes = newSnakes.map(s => (s.id, s)).toMap
 
   }
@@ -118,7 +159,7 @@ class Grid(boundary: Point) {
     var bodyDetails: List[BodyDetail] = Nil
     var appleDetails: List[AppleDetail] = Nil
 
-    grid.foreach{
+    grid.foreach {
       case (p, Body(id, life)) => bodyDetails ::= BodyDetail(id, life, p.x, p.y)
       case (p, Apple(score, life)) => appleDetails ::= AppleDetail(score, life, p.x, p.y)
       case (p, Header(id, life)) => bodyDetails ::= BodyDetail(id, life, p.x, p.y)

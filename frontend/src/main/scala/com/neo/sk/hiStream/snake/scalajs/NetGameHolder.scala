@@ -1,6 +1,6 @@
 package com.neo.sk.hiStream.snake.scalajs
 
-import com.neo.sk.hiStream.snake.{Protocol, scalajs}
+import com.neo.sk.hiStream.snake._
 import org.scalajs.dom
 import org.scalajs.dom.ext.{Color, KeyCode}
 import org.scalajs.dom.html.{Document => _, _}
@@ -17,9 +17,20 @@ import scala.scalajs.js
 object NetGameHolder extends js.JSApp {
 
 
+  val bounds = Point(Boundary.w, Boundary.h)
+  val canvasUnit = 10
+  val canvasBoundary = bounds * canvasUnit
+
   val watchKeys = Set(
-    KeyCode.Space, KeyCode.Left, KeyCode.Up, KeyCode.Right, KeyCode.Down
+    KeyCode.Space, KeyCode.Left, KeyCode.Up, KeyCode.Right, KeyCode.Down, KeyCode.Space
   )
+
+  object MyColors{
+    val myHeader = "#FF0000"
+    val myBody = "#FFFFFF"
+    val otherHeader = Color.Blue.toString()
+    val otherBody = Color(200, 200, 200).toString()
+  }
 
   private[this] val nameField = dom.document.getElementById("name").asInstanceOf[HTMLInputElement]
   private[this] val joinButton = dom.document.getElementById("join").asInstanceOf[HTMLButtonElement]
@@ -30,6 +41,8 @@ object NetGameHolder extends js.JSApp {
   override def main(): Unit = {
 
     drawGameOff()
+    canvas.width = canvasBoundary.x
+    canvas.height = canvasBoundary.y
 
     joinButton.onclick = { (event: MouseEvent) =>
       joinGame(nameField.value)
@@ -45,17 +58,82 @@ object NetGameHolder extends js.JSApp {
   }
 
   def drawGameOn(): Unit = {
-    ctx.fillStyle = Color.Green.toString()
-    ctx.fillRect(0, 0, 400, 50)
+    ctx.fillStyle = Color.Black.toString()
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
   }
 
   def drawGameOff(): Unit = {
-    ctx.fillStyle = Color.Black.toString()
-    ctx.fillRect(0, 0, 400, 50)
+    ctx.fillStyle = Color.Blue.toString()
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
   }
 
   //TODO here
-  def drawGrid(data: Protocol.GridDataMessage): Unit = {
+  def drawGrid(dataMsg: Protocol.GridDataMessage): Unit = {
+
+    ctx.fillStyle = Color.Black.toString()
+    ctx.fillRect(0, 0, bounds.x * canvasUnit, bounds.y * canvasUnit)
+
+    val uid = dataMsg.uid
+    val data = dataMsg.data
+    val snakes = data.snakes
+    val bodys = data.bodyDetails
+    val apples = data.appleDetails
+
+    ctx.fillStyle = MyColors.otherBody
+    bodys.foreach { case BodyDetail(id, life, x, y) =>
+      //println(s"draw body at $p body[$life]")
+      if (id == uid) {
+        ctx.save()
+        ctx.fillStyle = MyColors.myBody
+        ctx.fillRect(x * canvasUnit + 1, y * canvasUnit + 1, canvasUnit - 1, canvasUnit - 1)
+        ctx.restore()
+      } else {
+        ctx.fillRect(x * canvasUnit + 1, y * canvasUnit + 1, canvasUnit - 1, canvasUnit - 1)
+      }
+    }
+
+    apples.foreach { case AppleDetail(score, life, x, y) =>
+      ctx.fillStyle = score match {
+        case 10 => Color.Yellow.toString()
+        case 5 => Color.Blue.toString()
+        case _ => Color.Red.toString()
+      }
+      ctx.fillRect(x * canvasUnit + 1, y * canvasUnit + 1, canvasUnit - 1, canvasUnit - 1)
+    }
+
+    ctx.fillStyle = MyColors.otherHeader
+    snakes.foreach { snake =>
+      val id = snake.id
+      val x = snake.header.x
+      val y = snake.header.y
+      if (id == uid) {
+        ctx.save()
+        ctx.fillStyle = MyColors.myHeader
+        ctx.fillRect(x * canvasUnit + 2, y * canvasUnit + 2, canvasUnit - 4, canvasUnit - 4)
+        ctx.restore()
+      } else {
+        ctx.fillRect(x * canvasUnit + 2, y * canvasUnit + 2, canvasUnit - 4, canvasUnit - 4)
+      }
+    }
+
+
+    snakes.find(_.id == uid) match {
+      case Some(mySnake) =>
+        // Score
+        ctx.fillStyle = "rgb(250, 250, 250)"
+        ctx.font = "12px Helvetica"
+        ctx.textAlign = "left"
+        ctx.textBaseline = "top"
+        ctx.fillText("snake id: " + mySnake.id, 10, 10)
+        ctx.fillText("snake length: " + mySnake.length, 10, 24)
+      case None =>
+        ctx.fillStyle = "rgb(250, 250, 250)"
+        ctx.font = "36px Helvetica"
+        ctx.textAlign = "left"
+        ctx.textBaseline = "top"
+        ctx.fillText("Ops, Press Space Key To Restart!", 150, 180)
+    }
+
 
   }
 

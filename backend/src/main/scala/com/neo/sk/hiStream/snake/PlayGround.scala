@@ -1,5 +1,7 @@
 package com.neo.sk.hiStream.snake
 
+import java.awt.event.KeyEvent
+
 import akka.actor.{Actor, ActorRef, ActorSystem, Props, Terminated}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Sink, Source}
@@ -27,19 +29,24 @@ trait PlayGround {
 
 object PlayGround {
 
-  val bounds = Point(300, 150)
+  val bounds = Point(Boundary.w, Boundary.h)
 
   val log = LoggerFactory.getLogger(this.getClass)
+
 
   def create(system: ActorSystem)(implicit executor: ExecutionContext): PlayGround = {
 
     val ground = system.actorOf(Props(new Actor {
       var subscribers = Map.empty[Long, ActorRef]
 
+      var userMap = Map.empty[Long, String]
+
       val grid = new Grid(bounds)
+
       override def receive: Receive = {
         case r@Join(id, name, subscriber) =>
           log.debug(s"got $r")
+          userMap += (id -> name)
           context.watch(subscriber)
           subscribers += (id -> subscriber)
           grid.addSnake(id, name)
@@ -53,9 +60,12 @@ object PlayGround {
           dispatch(Protocol.SnakeLeft(id, name))
         case r@Key(id, keyCode) =>
           //log.debug(s"got $r")
-          dispatch(Protocol.TextMsg(s"Aha! $id click [$keyCode]"))//just for test
-          grid.addAction(id, keyCode)
-
+          dispatch(Protocol.TextMsg(s"Aha! $id click [$keyCode]")) //just for test
+          if (keyCode == KeyEvent.VK_SPACE) {
+            grid.addSnake(id, userMap.getOrElse(id, "Unknown"))
+          } else {
+            grid.addAction(id, keyCode)
+          }
         case r@Terminated(actor) =>
           log.debug(s"got $r")
           subscribers.find(_._2.equals(actor)).foreach { case (id, _) =>
@@ -66,6 +76,7 @@ object PlayGround {
         case Sync =>
           val gridData = grid.updateAndGetGridData()
           syncGridData(gridData)
+
         case x =>
           log.warn(s"got unknown msg: $x")
       }
@@ -82,7 +93,7 @@ object PlayGround {
     ), "ground")
 
     import concurrent.duration._
-    system.scheduler.schedule(3 seconds, 1000 millis, ground, Sync )// sync tick
+    system.scheduler.schedule(3 seconds, 200 millis, ground, Sync) // sync tick
 
 
     def playInSink(id: Long, name: String) = Sink.actorRef[UserAction](ground, Left(id, name))
@@ -109,9 +120,13 @@ object PlayGround {
 
 
   private sealed trait UserAction
+
   private case class Join(id: Long, name: String, subscriber: ActorRef) extends UserAction
+
   private case class Left(id: Long, name: String) extends UserAction
+
   private case class Key(id: Long, keyCode: Int) extends UserAction
+
   private case object Sync extends UserAction
 
 
