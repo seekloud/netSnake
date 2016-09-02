@@ -58,7 +58,7 @@ class Grid(boundary: Point) {
   }
 
   private[this] def updateSpots() = {
-    println(s"grid: ${grid.mkString(";")}")
+    log.debug(s"grid: ${grid.mkString(";")}")
     var appleCount = 0
     grid = grid.filter { case (p, spot) =>
       spot match {
