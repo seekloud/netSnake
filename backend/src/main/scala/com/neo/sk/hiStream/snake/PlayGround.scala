@@ -60,7 +60,7 @@ object PlayGround {
           dispatch(Protocol.SnakeLeft(id, name))
         case r@Key(id, keyCode) =>
           //log.debug(s"got $r")
-          dispatch(Protocol.TextMsg(s"Aha! $id click [$keyCode]")) //just for test
+          //dispatch(Protocol.TextMsg(s"Aha! $id click [$keyCode]")) //just for test
           if (keyCode == KeyEvent.VK_SPACE) {
             grid.addSnake(id, userMap.getOrElse(id, "Unknown"))
           } else {
@@ -93,7 +93,7 @@ object PlayGround {
     ), "ground")
 
     import concurrent.duration._
-    system.scheduler.schedule(3 seconds, 200 millis, ground, Sync) // sync tick
+    system.scheduler.schedule(3 seconds, 150 millis, ground, Sync) // sync tick
 
 
     def playInSink(id: Long, name: String) = Sink.actorRef[UserAction](ground, Left(id, name))

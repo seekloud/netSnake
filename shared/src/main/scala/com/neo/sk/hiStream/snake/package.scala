@@ -50,8 +50,8 @@ package object snake {
 
 
   object Boundary{
-    val w = 150
-    val h = 70
+    val w = 120
+    val h = 60
   }
 
 

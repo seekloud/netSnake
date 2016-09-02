@@ -25,11 +25,11 @@ object NetGameHolder extends js.JSApp {
     KeyCode.Space, KeyCode.Left, KeyCode.Up, KeyCode.Right, KeyCode.Down, KeyCode.Space
   )
 
-  object MyColors{
+  object MyColors {
     val myHeader = "#FF0000"
     val myBody = "#FFFFFF"
     val otherHeader = Color.Blue.toString()
-    val otherBody = Color(200, 200, 200).toString()
+    val otherBody = "#696969"
   }
 
   private[this] val nameField = dom.document.getElementById("name").asInstanceOf[HTMLInputElement]
@@ -117,20 +117,22 @@ object NetGameHolder extends js.JSApp {
     }
 
 
+    ctx.fillStyle = "rgb(250, 250, 250)"
+    ctx.textAlign = "left"
+    ctx.textBaseline = "top"
+    snakes.groupBy(_.length).toList.sortBy(_._1).reverse.headOption.foreach { case (len, s) =>
+      ctx.font = "12px Helvetica"
+      ctx.fillText(s"longest: ${s.map(_.name).mkString(", ")}, len=$len", 10, 10)
+    }
+
+
     snakes.find(_.id == uid) match {
       case Some(mySnake) =>
-        // Score
-        ctx.fillStyle = "rgb(250, 250, 250)"
         ctx.font = "12px Helvetica"
-        ctx.textAlign = "left"
-        ctx.textBaseline = "top"
-        ctx.fillText("snake id: " + mySnake.id, 10, 10)
-        ctx.fillText("snake length: " + mySnake.length, 10, 24)
+        ctx.fillText("your id: " + mySnake.id, 10, 24)
+        ctx.fillText("your length: " + mySnake.length, 10, 38)
       case None =>
-        ctx.fillStyle = "rgb(250, 250, 250)"
         ctx.font = "36px Helvetica"
-        ctx.textAlign = "left"
-        ctx.textBaseline = "top"
         ctx.fillText("Ops, Press Space Key To Restart!", 150, 180)
     }
 
@@ -174,7 +176,8 @@ object NetGameHolder extends js.JSApp {
         case Protocol.TextMsg(message) => writeToArea(s"MESSAGE: $message")
         case Protocol.NewSnakeJoined(id, user) => writeToArea(s"$user joined!")
         case Protocol.SnakeLeft(id, user) => writeToArea(s"$user left!")
-        case data: Protocol.GridDataMessage => writeToArea(s"data got: $data")
+        case data: Protocol.GridDataMessage =>
+          //writeToArea(s"data got: $data")
           drawGrid(data)
       }
     }

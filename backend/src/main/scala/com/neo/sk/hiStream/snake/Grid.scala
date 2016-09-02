@@ -18,7 +18,7 @@ class Grid(boundary: Point) {
   val log = LoggerFactory.getLogger(this.getClass)
 
   val defaultLength = 5
-  val appleNum = 8
+  val appleNum = 6
   val appleLife = 50
 
   private[this] var grid = Map[Point, Spot]()
@@ -76,7 +76,8 @@ class Grid(boundary: Point) {
       case x => x
     }
 
-    if(appleCount < appleNum) {
+
+    if(appleCount < snakes.size * 2 + appleNum ) {
       val p = randomEmptyPoint()
       val score = random.nextDouble() match {
         case x if x > 0.95 => 10
