@@ -129,8 +129,8 @@ object NetGameHolder extends js.JSApp {
     snakes.find(_.id == uid) match {
       case Some(mySnake) =>
         ctx.font = "12px Helvetica"
-        ctx.fillText("your id: " + mySnake.id, 10, 24)
-        ctx.fillText("your length: " + mySnake.length, 10, 38)
+        ctx.fillText("your id: " + mySnake.id, 10, 40)
+        ctx.fillText("your length: " + mySnake.length, 10, 54)
       case None =>
         ctx.font = "36px Helvetica"
         ctx.fillText("Ops, Press Space Key To Restart!", 150, 180)
