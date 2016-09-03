@@ -18,6 +18,10 @@ object Protocol {
     msg: String
   ) extends GameMessage
 
+  case class Rank(
+
+  )
+
   case class NewSnakeJoined(id: Long, name: String) extends GameMessage
 
   case class SnakeLeft(id: Long, name: String) extends GameMessage

@@ -14,6 +14,7 @@ package object snake {
   case class Header(id: Long, life: Int) extends Spot
   case class Apple(score: Int, life: Int) extends Spot
 
+  case class Score(name: String, kill: Int, length: Int)
 
   case class BodyDetail(id: Long, life: Int, x: Int, y: Int)
   case class AppleDetail(score: Long, life: Int, x: Int, y: Int)
