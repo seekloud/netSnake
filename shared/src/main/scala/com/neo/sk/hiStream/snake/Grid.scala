@@ -2,9 +2,6 @@ package com.neo.sk.hiStream.snake
 
 import java.awt.event.KeyEvent
 
-import org.slf4j.LoggerFactory
-
-import scala.collection.immutable.SortedSet
 import scala.util.Random
 
 
@@ -13,77 +10,24 @@ import scala.util.Random
   * Date: 9/1/2016
   * Time: 5:34 PM
   */
-class Grid(boundary: Point) {
+trait Grid {
 
+  val boundary: Point
+  def debug(msg: String) : Unit
+  def info(msg: String) : Unit
 
-  val log = LoggerFactory.getLogger(this.getClass)
+  val random = new Random(System.nanoTime())
+
 
   val defaultLength = 5
   val appleNum = 6
   val appleLife = 50
   val historyRankLength = 5
 
-  private[this] var grid = Map[Point, Spot]()
-  private[this] var snakes = Map.empty[Long, SnakeData]
-  private[this] var actionMap = Map.empty[Long, Int]
-  private[this] var waitingJoin = Map.empty[Long, String]
+  var grid = Map[Point, Spot]()
+  var snakes = Map.empty[Long, SnakeData]
+  var actionMap = Map.empty[Long, Int]
 
-  private[this] var currentRank = List.empty[Score]
-
-  private[this] var historyRankMap = Map.empty[Long, Score]
-  private[this] var historyRankList = historyRankMap.values.toList.sortBy(_.kill).reverse
-  private[this] var historyRankThreshold = if (historyRankList.isEmpty) -1 else historyRankList.map(_.kill).min
-
-
-  def addSnake(id: Long, name: String) = waitingJoin += (id -> name)
-
-  private[this] def genWaitingSnake() = {
-
-    waitingJoin.filterNot(kv => snakes.contains(kv._1)).foreach { case (id, name) =>
-      val header = randomEmptyPoint()
-      grid += header -> Body(id, defaultLength - 1)
-      snakes += id -> SnakeData(id, name, header)
-    }
-    waitingJoin = Map.empty[Long, String]
-  }
-
-  implicit val scoreOrdering = new Ordering[Score] {
-    override def compare(x: Score, y: Score): Int = {
-      var r = y.kill - x.kill
-      if(r == 0) {
-        r = y.length - x.length
-      }
-      if(r == 0) {
-        r = (x.id - y.id).toInt
-      }
-      r
-    }
-  }
-
-  private[this] def updateRanks() = {
-    currentRank = snakes.values.map(s => Score(s.id, s.name, s.kill, s.length)).toList.sorted
-
-
-    var historyChange = false
-    currentRank.foreach { cScore =>
-      historyRankMap.get(cScore.id) match {
-        case Some(oldScore) if cScore.kill > oldScore.kill =>
-          historyRankMap += (cScore.id -> cScore)
-          historyChange = true
-        case None if cScore.kill > historyRankThreshold =>
-          historyRankMap += (cScore.id -> cScore)
-          historyChange = true
-        case _ => //do nothing.
-      }
-    }
-
-    if (historyChange) {
-      historyRankList = historyRankMap.values.toList.sorted.take(historyRankLength)
-      historyRankThreshold = historyRankList.lastOption.map(_.kill).getOrElse(-1)
-      historyRankMap = historyRankList.map(s => s.id -> s).toMap
-    }
-
-  }
 
 
   def removeSnake(id: Long): Option[SnakeData] = {
@@ -101,12 +45,12 @@ class Grid(boundary: Point) {
   def update() = {
     updateSnakes()
     updateSpots()
-    genWaitingSnake()
-    updateRanks()
   }
 
+  def feedApple(appleCount: Int): Unit
+
   private[this] def updateSpots() = {
-    log.debug(s"grid: ${grid.mkString(";")}")
+    debug(s"grid: ${grid.mkString(";")}")
     var appleCount = 0
     grid = grid.filter { case (p, spot) =>
       spot match {
@@ -124,20 +68,9 @@ class Grid(boundary: Point) {
       case x => x
     }
 
-
-    if (appleCount < snakes.size * 2 + appleNum) {
-      val p = randomEmptyPoint()
-      val score = random.nextDouble() match {
-        case x if x > 0.95 => 10
-        case x if x > 0.8 => 5
-        case x => 1
-      }
-      val apple = Apple(score, appleLife)
-      grid += (p -> apple)
-    }
+    feedApple(appleCount)
   }
 
-  val random = new Random(System.nanoTime())
 
   def randomEmptyPoint(): Point = {
     var p = Point(random.nextInt(boundary.x), random.nextInt(boundary.y))
@@ -149,11 +82,9 @@ class Grid(boundary: Point) {
 
 
   private[this] def updateSnakes() = {
-
-
     def updateASnake(snake: SnakeData): Either[Long, SnakeData] = {
       val keyCode = actionMap.get(snake.id)
-      log.debug(s" +++ snake[${snake.id}] feel key: $keyCode")
+      debug(s" +++ snake[${snake.id}] feel key: $keyCode")
       val newDirection = {
         val keyDirection = keyCode match {
           case Some(KeyEvent.VK_LEFT) => Point(-1, 0)
@@ -173,7 +104,7 @@ class Grid(boundary: Point) {
 
       grid.get(newHeader) match {
         case Some(x: Body) =>
-          log.info(s"snake[${snake.id}] hit wall.")
+          debug(s"snake[${snake.id}] hit wall.")
           Left(x.id)
         case Some(Apple(score, _)) =>
           val len = snake.length + score
@@ -231,24 +162,16 @@ class Grid(boundary: Point) {
     var bodyDetails: List[BodyDetail] = Nil
     var appleDetails: List[AppleDetail] = Nil
 
-
-
-
-
     grid.foreach {
       case (p, Body(id, life)) => bodyDetails ::= BodyDetail(id, life, p.x, p.y)
       case (p, Apple(score, life)) => appleDetails ::= AppleDetail(score, life, p.x, p.y)
       case (p, Header(id, life)) => bodyDetails ::= BodyDetail(id, life, p.x, p.y)
     }
-
     GridDataSync(
       snakes.values.toList,
       bodyDetails,
-      appleDetails,
-      currentRank,
-      historyRankList
+      appleDetails
     )
-
   }
 
 

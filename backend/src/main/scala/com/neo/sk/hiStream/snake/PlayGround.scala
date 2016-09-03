@@ -41,7 +41,9 @@ object PlayGround {
 
       var userMap = Map.empty[Long, String]
 
-      val grid = new Grid(bounds)
+      val grid = new GridOnServer(bounds)
+
+      var tickCount = 0l
 
       override def receive: Receive = {
         case r@Join(id, name, subscriber) =>
@@ -51,7 +53,7 @@ object PlayGround {
           subscribers += (id -> subscriber)
           grid.addSnake(id, name)
           dispatch(Protocol.NewSnakeJoined(id, name))
-
+          syncGridData(grid.getGridData)
         case r@Left(id, name) =>
           log.debug(s"got $r")
           subscribers.get(id).foreach(context.unwatch)
@@ -59,13 +61,14 @@ object PlayGround {
           grid.removeSnake(id)
           dispatch(Protocol.SnakeLeft(id, name))
         case r@Key(id, keyCode) =>
-          //log.debug(s"got $r")
-          //dispatch(Protocol.TextMsg(s"Aha! $id click [$keyCode]")) //just for test
+          log.debug(s"got $r")
+          dispatch(Protocol.TextMsg(s"Aha! $id click [$keyCode]")) //just for test
           if (keyCode == KeyEvent.VK_SPACE) {
             grid.addSnake(id, userMap.getOrElse(id, "Unknown"))
           } else {
             grid.addAction(id, keyCode)
           }
+          dispatch(Protocol.SnakeAction(id, keyCode))
         case r@Terminated(actor) =>
           log.debug(s"got $r")
           subscribers.find(_._2.equals(actor)).foreach { case (id, _) =>
@@ -74,9 +77,13 @@ object PlayGround {
             grid.removeSnake(id).foreach(s => dispatch(Protocol.SnakeLeft(id, s.name)))
           }
         case Sync =>
-          val gridData = grid.updateAndGetGridData()
-          syncGridData(gridData)
-
+          tickCount += 1
+/*          val gridData = grid.updateAndGetGridData()
+          syncGridData(gridData)*/
+          grid.update()
+          if(tickCount % 10 == 0) {
+            dispatch(Protocol.Ranks(grid.currentRank, grid.historyRankList))
+          }
         case x =>
           log.warn(s"got unknown msg: $x")
       }

@@ -22,7 +22,7 @@ val scalaJsjqueryV = "0.9.0"
 val upickleV = "0.4.2"
 
 lazy val root = (project in file("."))
-  .aggregate(frontend, backend, cli)
+  .aggregate(frontend, backend)
 
 
 // Scala-Js frontend
@@ -92,21 +92,6 @@ lazy val backend = (project in file("backend"))
     (fastOptJS in Compile in frontend, packageScalaJSLauncher in Compile in frontend)
       .map { (f1, f2) => Seq(f1.data, f2.data) },
     watchSources <++= (watchSources in frontend)
-  )
-  .dependsOn(sharedJvm)
-
-
-
-lazy val cli = (project in file("cli"))
-  .settings(Revolver.settings: _*)
-  .settings(name := "hiStream_cli")
-  .settings(commonSettings: _*)
-  .settings(
-    libraryDependencies ++= Seq(
-      "com.typesafe.akka" %% "akka-http-core" % akkaV
-    ),
-    fork in run := true,
-    connectInput in run := true
   )
   .dependsOn(sharedJvm)
 

@@ -21,9 +21,7 @@ package object snake {
   case class GridDataSync(
     snakes: List[SnakeData],
     bodyDetails: List[BodyDetail],
-    appleDetails: List[AppleDetail],
-    currentRank: List[Score],
-    historyRank: List[Score]
+    appleDetails: List[AppleDetail]
   )
 
   case class Point(x: Int, y: Int) {

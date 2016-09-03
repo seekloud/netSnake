@@ -22,6 +22,12 @@ object NetGameHolder extends js.JSApp {
   val canvasBoundary = bounds * canvasUnit
   val textLineHeight = 14
 
+  var currentRank = List.empty[Score]
+  var historyRank = List.empty[Score]
+  var myId = -1l
+
+  val grid = new GridOnClient(bounds)
+
   val watchKeys = Set(
     KeyCode.Space, KeyCode.Left, KeyCode.Up, KeyCode.Right, KeyCode.Down, KeyCode.Space
   )
@@ -40,7 +46,6 @@ object NetGameHolder extends js.JSApp {
 
   @scala.scalajs.js.annotation.JSExport
   override def main(): Unit = {
-
     drawGameOff()
     canvas.width = canvasBoundary.x
     canvas.height = canvasBoundary.y
@@ -56,6 +61,8 @@ object NetGameHolder extends js.JSApp {
         event.preventDefault()
       }
     }
+
+    //dom.window.setInterval()
   }
 
   def drawGameOn(): Unit = {
@@ -68,20 +75,31 @@ object NetGameHolder extends js.JSApp {
     ctx.fillRect(0, 0, canvas.width, canvas.height)
   }
 
-  //TODO here
-  def drawGrid(dataMsg: Protocol.GridDataMessage): Unit = {
+  def gameLoop(): Unit = {
+    update()
+    draw()
+  }
+
+  def update(): Unit = {
+    grid.update()
+  }
+
+  def draw(): Unit = {
+    drawGrid(myId, grid.getGridData)
+  }
+
+  def drawGrid(uid: Long, data: GridDataSync): Unit = {
+    myId = uid
 
     ctx.fillStyle = Color.Black.toString()
     ctx.fillRect(0, 0, bounds.x * canvasUnit, bounds.y * canvasUnit)
 
-    val uid = dataMsg.uid
-    val data = dataMsg.data
     val snakes = data.snakes
-    val bodys = data.bodyDetails
+    val bodies = data.bodyDetails
     val apples = data.appleDetails
 
     ctx.fillStyle = MyColors.otherBody
-    bodys.foreach { case BodyDetail(id, life, x, y) =>
+    bodies.foreach { case BodyDetail(id, life, x, y) =>
       //println(s"draw body at $p body[$life]")
       if (id == uid) {
         ctx.save()
@@ -121,13 +139,6 @@ object NetGameHolder extends js.JSApp {
     ctx.fillStyle = "rgb(250, 250, 250)"
     ctx.textAlign = "left"
     ctx.textBaseline = "top"
-    /*
-        snakes.groupBy(_.kill).toList.sortBy(_._1).reverse.headOption.foreach { case (kill, s) =>
-          ctx.font = "12px Helvetica"
-          ctx.fillText(s"Top Killer: ${s.map(_.name).mkString(", ")}, kill=$kill, length=${s.length}", 10, 10)
-        }
-    */
-
 
     val leftBegin = 10
     val rightBegin = canvasBoundary.x - 150
@@ -145,7 +156,6 @@ object NetGameHolder extends js.JSApp {
         ctx.fillText("Ops, Press Space Key To Restart!", 150, 180)
     }
 
-    val currentRank = data.currentRank
     ctx.font = "12px Helvetica"
     val currentRankBaseLine = 5
     var index = 0
@@ -155,7 +165,6 @@ object NetGameHolder extends js.JSApp {
       drawTextLine(s"[$index]: ${score.name.+("   ").take(3)} kill=${score.kill} len=${score.length}", leftBegin, index, currentRankBaseLine)
     }
 
-    val historyRank = data.historyRank
     val historyRankBaseLine = 1
     index = 0
     drawTextLine(s" --- History Rank --- ", rightBegin, index, historyRankBaseLine)
@@ -207,9 +216,14 @@ object NetGameHolder extends js.JSApp {
         case Protocol.TextMsg(message) => writeToArea(s"MESSAGE: $message")
         case Protocol.NewSnakeJoined(id, user) => writeToArea(s"$user joined!")
         case Protocol.SnakeLeft(id, user) => writeToArea(s"$user left!")
+        case Protocol.SnakeAction(id, keyCode) =>
+        case Protocol.Ranks(current, history) =>
+          writeToArea(s"rank update. current = $current") //for debug.
+          currentRank = current
+          historyRank = history
         case data: Protocol.GridDataMessage =>
           //writeToArea(s"data got: $data")
-          drawGrid(data)
+          drawGrid(data.uid, data.data)
       }
     }
 
