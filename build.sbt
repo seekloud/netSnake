@@ -121,7 +121,7 @@ lazy val sharedJvm = shared.jvm
 lazy val sharedJs = shared.js
 
 def commonSettings = Seq(
-  version := "1.1.0",
+  version := "1.1.1",
   scalaVersion := scalaV
 )
 
