@@ -148,7 +148,7 @@ object NetGameHolder extends js.JSApp {
     val currentRank = data.currentRank
     ctx.font = "12px Helvetica"
     val currentRankBaseLine = 5
-    var index = 1
+    var index = 0
     drawTextLine(s" --- Current Rank --- ", leftBegin, index, currentRankBaseLine)
     currentRank.foreach { score =>
       index += 1
