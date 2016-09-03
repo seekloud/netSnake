@@ -16,7 +16,7 @@ package object snake {
 
   case class Score(id: Long, name: String, kill: Int, length: Int, time: Option[Long] = None)
   case class BodyDetail(id: Long, life: Int, x: Int, y: Int)
-  case class AppleDetail(score: Long, life: Int, x: Int, y: Int)
+  case class AppleDetail(score: Int, life: Int, x: Int, y: Int)
 
   case class GridDataSync(
     snakes: List[SnakeData],

@@ -78,9 +78,15 @@ object PlayGround {
           }
         case Sync =>
           tickCount += 1
-/*          val gridData = grid.updateAndGetGridData()
-          syncGridData(gridData)*/
-          grid.update()
+
+          if(tickCount % 10 == 5) {
+            val gridData = grid.updateAndGetGridData()
+            syncGridData(gridData)
+          } else {
+            grid.update()
+          }
+
+
           if(tickCount % 10 == 0) {
             dispatch(Protocol.Ranks(grid.currentRank, grid.historyRankList))
           }

@@ -62,7 +62,7 @@ object NetGameHolder extends js.JSApp {
       }
     }
 
-    //dom.window.setInterval()
+    dom.window.setInterval(() => gameLoop(), 150)
   }
 
   def drawGameOn(): Unit = {
@@ -85,7 +85,8 @@ object NetGameHolder extends js.JSApp {
   }
 
   def draw(): Unit = {
-    drawGrid(myId, grid.getGridData)
+    val data = grid.getGridData
+    drawGrid(myId, data)
   }
 
   def drawGrid(uid: Long, data: GridDataSync): Unit = {
@@ -217,13 +218,24 @@ object NetGameHolder extends js.JSApp {
         case Protocol.NewSnakeJoined(id, user) => writeToArea(s"$user joined!")
         case Protocol.SnakeLeft(id, user) => writeToArea(s"$user left!")
         case Protocol.SnakeAction(id, keyCode) =>
+          grid.addAction(id, keyCode)
+          if (keyCode == KeyCode.Space) {
+            writeToArea(s"Grid Data: ${grid.getGridData}") //for debug.
+          }
         case Protocol.Ranks(current, history) =>
           writeToArea(s"rank update. current = $current") //for debug.
           currentRank = current
           historyRank = history
-        case data: Protocol.GridDataMessage =>
-          //writeToArea(s"data got: $data")
-          drawGrid(data.uid, data.data)
+        case msgData: Protocol.GridDataMessage =>
+          writeToArea(s"grid data got: $msgData")
+          //TODO here should be better code.
+          val data = msgData.data
+          grid.snakes = data.snakes.map(s => s.id -> s).toMap
+          val appleMap = data.appleDetails.map(a => Point(a.x, a.y) -> Apple(a.score, a.life)).toMap
+          val bodyMap = data.bodyDetails.map(b => Point(b.x, b.y) -> Body(b.id, b.life)).toMap
+          val gridMap = appleMap ++ bodyMap
+          grid.grid = gridMap
+          drawGrid(msgData.uid, data)
       }
     }
 
