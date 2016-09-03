@@ -20,6 +20,7 @@ object NetGameHolder extends js.JSApp {
   val bounds = Point(Boundary.w, Boundary.h)
   val canvasUnit = 10
   val canvasBoundary = bounds * canvasUnit
+  val textLineHeight = 14
 
   val watchKeys = Set(
     KeyCode.Space, KeyCode.Left, KeyCode.Up, KeyCode.Right, KeyCode.Down, KeyCode.Space
@@ -120,24 +121,53 @@ object NetGameHolder extends js.JSApp {
     ctx.fillStyle = "rgb(250, 250, 250)"
     ctx.textAlign = "left"
     ctx.textBaseline = "top"
-    snakes.groupBy(_.kill).toList.sortBy(_._1).reverse.headOption.foreach { case (kill, s) =>
-      ctx.font = "12px Helvetica"
-      ctx.fillText(s"Top Killer: ${s.map(_.name).mkString(", ")}, kill=$kill, length=${s.length}", 10, 10)
-    }
+    /*
+        snakes.groupBy(_.kill).toList.sortBy(_._1).reverse.headOption.foreach { case (kill, s) =>
+          ctx.font = "12px Helvetica"
+          ctx.fillText(s"Top Killer: ${s.map(_.name).mkString(", ")}, kill=$kill, length=${s.length}", 10, 10)
+        }
+    */
+
+
+    val leftBegin = 10
+    val rightBegin = canvasBoundary.x - 135
 
 
     snakes.find(_.id == uid) match {
       case Some(mySnake) =>
+        val baseLine = 1
         ctx.font = "12px Helvetica"
-        ctx.fillText("your id     : " + mySnake.id, 10, 40)
-        ctx.fillText("your kill   : " + mySnake.kill, 10, 40)
-        ctx.fillText("your length : " + mySnake.length, 10, 54)
+        drawTextLine(s"YOU: id=[${mySnake.id}]    name=[${mySnake.name.take(32)}]", leftBegin, 0, baseLine)
+        drawTextLine(s"your kill = ${mySnake.kill}", leftBegin, 1, baseLine)
+        drawTextLine(s"your length = ${mySnake.length} ", leftBegin, 2, baseLine)
       case None =>
         ctx.font = "36px Helvetica"
         ctx.fillText("Ops, Press Space Key To Restart!", 150, 180)
     }
 
+    val currentRank = data.currentRank
+    ctx.font = "12px Helvetica"
+    val currentRankBaseLine = 5
+    var index = 1
+    drawTextLine(s" --- Current Rank --- ", leftBegin, index, currentRankBaseLine)
+    currentRank.foreach { score =>
+      index += 1
+      drawTextLine(s"[$index]: ${score.name.take(3)} kill=${score.kill} len=${score.length}", leftBegin, index, currentRankBaseLine)
+    }
 
+    val historyRank = data.historyRank
+    val historyRankBaseLine = 1
+    index = 0
+    drawTextLine(s" --- History Rank --- ", rightBegin, index, historyRankBaseLine)
+    historyRank.foreach { score =>
+      index += 1
+      drawTextLine(s"[$index]: ${score.name.take(3)} kill=${score.kill} len=${score.length}", rightBegin, index, historyRankBaseLine)
+    }
+
+  }
+
+  def drawTextLine(str: String, x: Int, lineNum: Int, lineBegin: Int = 0) = {
+    ctx.fillText(str, x, (lineNum + lineBegin - 1) * textLineHeight)
   }
 
 

@@ -31,9 +31,8 @@ class Grid(boundary: Point) {
   private[this] var currentRank = List.empty[Score]
 
   private[this] var historyRankMap = Map.empty[Long, Score]
-  private[this] var historyRankThreshold = historyRankMap.values.map(_.kill).min
   private[this] var historyRankList = historyRankMap.values.toList.sortBy(_.kill).reverse
-
+  private[this] var historyRankThreshold = if (historyRankList.isEmpty) -1 else historyRankList.map(_.kill).min
 
 
   def addSnake(id: Long, name: String) = waitingJoin += (id -> name)
@@ -42,17 +41,31 @@ class Grid(boundary: Point) {
 
     waitingJoin.filterNot(kv => snakes.contains(kv._1)).foreach { case (id, name) =>
       val header = randomEmptyPoint()
-      grid += header -> Body(id, defaultLength)
+      grid += header -> Body(id, defaultLength - 1)
       snakes += id -> SnakeData(id, name, header)
     }
     waitingJoin = Map.empty[Long, String]
   }
 
+  implicit val scoreOrdering = new Ordering[Score] {
+    override def compare(x: Score, y: Score): Int = {
+      var r = y.kill - x.kill
+      if(r == 0) {
+        r = y.length - x.length
+      }
+      if(r == 0) {
+        r = (x.id - y.id).toInt
+      }
+      r
+    }
+  }
+
   private[this] def updateRanks() = {
-    currentRank = snakes.values.map(s => Score(s.id, s.name, s.kill, s.length)).toList.sortBy(_.kill).reverse
+    currentRank = snakes.values.map(s => Score(s.id, s.name, s.kill, s.length)).toList.sorted
+
 
     var historyChange = false
-    currentRank.foreach{ cScore =>
+    currentRank.foreach { cScore =>
       historyRankMap.get(cScore.id) match {
         case Some(oldScore) if cScore.kill > oldScore.kill =>
           historyRankMap += (cScore.id -> cScore)
@@ -64,8 +77,8 @@ class Grid(boundary: Point) {
       }
     }
 
-    if(historyChange) {
-      historyRankList = historyRankMap.values.toList.sortBy(_.kill).reverse.take(historyRankLength)
+    if (historyChange) {
+      historyRankList = historyRankMap.values.toList.sorted.take(historyRankLength)
       historyRankThreshold = historyRankList.lastOption.map(_.kill).getOrElse(-1)
       historyRankMap = historyRankList.map(s => s.id -> s).toMap
     }
@@ -186,8 +199,8 @@ class Grid(boundary: Point) {
     val snakesInDanger = updatedSnakes.groupBy(_.header).filter(_._2.size > 1).values
 
     val deadSnakes =
-      snakesInDanger.flatMap{ hits =>
-        val sorted =hits.toSeq.sortBy(_.length)
+      snakesInDanger.flatMap { hits =>
+        val sorted = hits.toSeq.sortBy(_.length)
         val winner = sorted.head
         val deads = sorted.tail
         mapKillCounter += winner.id -> (mapKillCounter.getOrElse(winner.id, 0) + deads.length)
@@ -195,7 +208,7 @@ class Grid(boundary: Point) {
       }.map(_.id).toSet
 
 
-    val newSnakes = updatedSnakes.map{ s =>
+    val newSnakes = updatedSnakes.filterNot(s => deadSnakes.contains(s.id)).map { s =>
       mapKillCounter.get(s.id) match {
         case Some(k) => s.copy(kill = s.kill + k)
         case None => s
