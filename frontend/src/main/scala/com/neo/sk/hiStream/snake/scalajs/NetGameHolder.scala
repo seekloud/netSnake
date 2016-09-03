@@ -130,7 +130,7 @@ object NetGameHolder extends js.JSApp {
 
 
     val leftBegin = 10
-    val rightBegin = canvasBoundary.x - 135
+    val rightBegin = canvasBoundary.x - 150
 
 
     snakes.find(_.id == uid) match {
