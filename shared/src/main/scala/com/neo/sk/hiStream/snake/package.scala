@@ -47,7 +47,9 @@ package object snake {
     name: String,
     header: Point = Point(20, 20),
     direction: Point = Point(1, 0),
-    length: Int = 4)
+    length: Int = 4,
+    kill: Int = 0
+  )
 
 
   object Boundary{
