@@ -14,15 +14,16 @@ package object snake {
   case class Header(id: Long, life: Int) extends Spot
   case class Apple(score: Int, life: Int) extends Spot
 
-  case class Score(name: String, kill: Int, length: Int)
-
+  case class Score(id: Long, name: String, kill: Int, length: Int, time: Option[Long] = None)
   case class BodyDetail(id: Long, life: Int, x: Int, y: Int)
   case class AppleDetail(score: Long, life: Int, x: Int, y: Int)
 
   case class GridDataSync(
     snakes: List[SnakeData],
     bodyDetails: List[BodyDetail],
-    appleDetails: List[AppleDetail]
+    appleDetails: List[AppleDetail],
+    currentRank: List[Score],
+    historyRank: List[Score]
   )
 
   case class Point(x: Int, y: Int) {

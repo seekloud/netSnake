@@ -120,17 +120,18 @@ object NetGameHolder extends js.JSApp {
     ctx.fillStyle = "rgb(250, 250, 250)"
     ctx.textAlign = "left"
     ctx.textBaseline = "top"
-    snakes.groupBy(_.length).toList.sortBy(_._1).reverse.headOption.foreach { case (len, s) =>
+    snakes.groupBy(_.kill).toList.sortBy(_._1).reverse.headOption.foreach { case (kill, s) =>
       ctx.font = "12px Helvetica"
-      ctx.fillText(s"longest: ${s.map(_.name).mkString(", ")}, len=$len", 10, 10)
+      ctx.fillText(s"Top Killer: ${s.map(_.name).mkString(", ")}, kill=$kill, length=${s.length}", 10, 10)
     }
 
 
     snakes.find(_.id == uid) match {
       case Some(mySnake) =>
         ctx.font = "12px Helvetica"
-        ctx.fillText("your id: " + mySnake.id, 10, 40)
-        ctx.fillText("your length: " + mySnake.length, 10, 54)
+        ctx.fillText("your id     : " + mySnake.id, 10, 40)
+        ctx.fillText("your kill   : " + mySnake.kill, 10, 40)
+        ctx.fillText("your length : " + mySnake.length, 10, 54)
       case None =>
         ctx.font = "36px Helvetica"
         ctx.fillText("Ops, Press Space Key To Restart!", 150, 180)
