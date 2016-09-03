@@ -152,7 +152,7 @@ object NetGameHolder extends js.JSApp {
     drawTextLine(s" --- Current Rank --- ", leftBegin, index, currentRankBaseLine)
     currentRank.foreach { score =>
       index += 1
-      drawTextLine(s"[$index]: ${score.name.take(3)} kill=${score.kill} len=${score.length}", leftBegin, index, currentRankBaseLine)
+      drawTextLine(s"[$index]: ${score.name.+("   ").take(3)} kill=${score.kill} len=${score.length}", leftBegin, index, currentRankBaseLine)
     }
 
     val historyRank = data.historyRank
@@ -161,7 +161,7 @@ object NetGameHolder extends js.JSApp {
     drawTextLine(s" --- History Rank --- ", rightBegin, index, historyRankBaseLine)
     historyRank.foreach { score =>
       index += 1
-      drawTextLine(s"[$index]: ${score.name.take(3)} kill=${score.kill} len=${score.length}", rightBegin, index, historyRankBaseLine)
+      drawTextLine(s"[$index]: ${score.name.+("   ").take(3)} kill=${score.kill} len=${score.length}", rightBegin, index, historyRankBaseLine)
     }
 
   }
