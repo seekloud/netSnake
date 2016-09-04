@@ -29,7 +29,6 @@ trait Grid {
   var actionMap = Map.empty[Long, Int]
 
 
-
   def removeSnake(id: Long): Option[SnakeData] = {
     val r = snakes.get(id)
     if (r.isDefined) {

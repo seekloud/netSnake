@@ -8,6 +8,7 @@ import org.scalajs.dom.raw._
 import upickle.default._
 
 import scala.scalajs.js
+import scala.scalajs.js.typedarray.{Int8Array, Uint8Array}
 
 /**
   * User: Taoz
@@ -28,8 +29,15 @@ object NetGameHolder extends js.JSApp {
 
   val grid = new GridOnClient(bounds)
 
+  var justSynced = false
+
   val watchKeys = Set(
-    KeyCode.Space, KeyCode.Left, KeyCode.Up, KeyCode.Right, KeyCode.Down, KeyCode.Space
+    KeyCode.Space,
+    KeyCode.Left,
+    KeyCode.Up,
+    KeyCode.Right,
+    KeyCode.Down,
+    KeyCode.F2
   )
 
   object MyColors {
@@ -76,7 +84,11 @@ object NetGameHolder extends js.JSApp {
   }
 
   def gameLoop(): Unit = {
-    update()
+    if (!justSynced) {
+      update()
+    } else {
+      justSynced = false
+    }
     draw()
   }
 
@@ -90,8 +102,6 @@ object NetGameHolder extends js.JSApp {
   }
 
   def drawGrid(uid: Long, data: GridDataSync): Unit = {
-    myId = uid
-
     ctx.fillStyle = Color.Black.toString()
     ctx.fillRect(0, 0, bounds.x * canvasUnit, bounds.y * canvasUnit)
 
@@ -194,9 +204,13 @@ object NetGameHolder extends js.JSApp {
         (e: dom.KeyboardEvent) => {
           println(s"keydown: ${e.keyCode}")
           if (watchKeys.contains(e.keyCode)) {
-            println(s"got key: [${e.keyCode}]")
-            gameStream.send(e.keyCode.toString)
-            //TODO send key
+            println(s"key down: [${e.keyCode}]")
+            if (e.keyCode == KeyCode.F2) {
+              gameStream.send("T" + System.currentTimeMillis())
+            } else {
+              grid.addAction(myId, e.keyCode)
+              gameStream.send(e.keyCode.toString)
+            }
             e.preventDefault()
           }
         }
@@ -214,20 +228,25 @@ object NetGameHolder extends js.JSApp {
     gameStream.onmessage = { (event: MessageEvent) =>
       val wsMsg = read[Protocol.GameMessage](event.data.toString)
       wsMsg match {
+        case Protocol.Id(id) => myId = id
         case Protocol.TextMsg(message) => writeToArea(s"MESSAGE: $message")
         case Protocol.NewSnakeJoined(id, user) => writeToArea(s"$user joined!")
         case Protocol.SnakeLeft(id, user) => writeToArea(s"$user left!")
         case Protocol.SnakeAction(id, keyCode) =>
-          grid.addAction(id, keyCode)
-          if (keyCode == KeyCode.Space) {
-            writeToArea(s"Grid Data: ${grid.getGridData}") //for debug.
+          if (id != myId) {
+            grid.addAction(id, keyCode)
           }
+        case Protocol.SnakesAction(actionMap) =>
+          writeToArea(s"actionMap got = ${actionMap.mkString(";")}") //for debug.
+        //grid.actionMap = actionMap
+        //grid.actionMap -= myId
+
         case Protocol.Ranks(current, history) =>
           writeToArea(s"rank update. current = $current") //for debug.
           currentRank = current
           historyRank = history
         case msgData: Protocol.GridDataMessage =>
-          writeToArea(s"grid data got: $msgData")
+          //writeToArea(s"grid data got: $msgData")
           //TODO here should be better code.
           val data = msgData.data
           grid.snakes = data.snakes.map(s => s.id -> s).toMap
@@ -235,10 +254,14 @@ object NetGameHolder extends js.JSApp {
           val bodyMap = data.bodyDetails.map(b => Point(b.x, b.y) -> Body(b.id, b.life)).toMap
           val gridMap = appleMap ++ bodyMap
           grid.grid = gridMap
-          drawGrid(msgData.uid, data)
+          justSynced = true
+        //drawGrid(msgData.uid, data)
+        case Protocol.NetDelayTest(createTime) =>
+          val receivetTime = System.currentTimeMillis()
+          val m = s"Net Delay Test: createTime=$createTime, receiveTime=$receivetTime, twoWayDelay=${receivetTime - createTime}"
+          writeToArea(m)
       }
     }
-
 
 
     gameStream.onclose = { (event: Event) =>

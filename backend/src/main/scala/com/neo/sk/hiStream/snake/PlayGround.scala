@@ -5,6 +5,7 @@ import java.awt.event.KeyEvent
 import akka.actor.{Actor, ActorRef, ActorSystem, Props, Terminated}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Sink, Source}
+import com.neo.sk.hiStream.snake.Protocol.SnakesAction
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext
@@ -52,6 +53,7 @@ object PlayGround {
           context.watch(subscriber)
           subscribers += (id -> subscriber)
           grid.addSnake(id, name)
+          dispatchTo(id, Protocol.Id(id))
           dispatch(Protocol.NewSnakeJoined(id, name))
           syncGridData(grid.getGridData)
         case r@Left(id, name) =>
@@ -67,8 +69,8 @@ object PlayGround {
             grid.addSnake(id, userMap.getOrElse(id, "Unknown"))
           } else {
             grid.addAction(id, keyCode)
+            dispatch(Protocol.SnakeAction(id, keyCode))
           }
-          dispatch(Protocol.SnakeAction(id, keyCode))
         case r@Terminated(actor) =>
           log.debug(s"got $r")
           subscribers.find(_._2.equals(actor)).foreach { case (id, _) =>
@@ -78,20 +80,27 @@ object PlayGround {
           }
         case Sync =>
           tickCount += 1
-
-          if(tickCount % 10 == 5) {
+          if (tickCount % 10 == 5) {
             val gridData = grid.updateAndGetGridData()
             syncGridData(gridData)
           } else {
+            //dispatch(SnakesAction(grid.actionMap))
             grid.update()
           }
+          //grid.actionMap = Map.empty
 
-
-          if(tickCount % 10 == 0) {
+          if (tickCount % 10 == 0) {
             dispatch(Protocol.Ranks(grid.currentRank, grid.historyRankList))
           }
+        case NetTest(id, createTime) =>
+          log.info(s"Net Test: createTime=$createTime")
+          dispatchTo(id, Protocol.NetDelayTest(createTime))
         case x =>
           log.warn(s"got unknown msg: $x")
+      }
+
+      def dispatchTo(id: Long, gameOutPut: Protocol.GameMessage): Unit = {
+        subscribers.get(id).foreach { ref => ref ! gameOutPut }
       }
 
       def dispatch(gameOutPut: Protocol.GameMessage) = {
@@ -116,7 +125,14 @@ object PlayGround {
       override def joinGame(id: Long, name: String): Flow[String, Protocol.GameMessage, Any] = {
         val in =
           Flow[String]
-            .map(s => Key(id, s.toInt))
+            .map { s =>
+              if (s.startsWith("T")) {
+                val timestamp = s.substring(1).toLong
+                NetTest(id, timestamp)
+              } else {
+                Key(id, s.toInt)
+              }
+            }
             .to(playInSink(id, name))
 
         val out =
@@ -139,6 +155,8 @@ object PlayGround {
   private case class Left(id: Long, name: String) extends UserAction
 
   private case class Key(id: Long, keyCode: Int) extends UserAction
+
+  private case class NetTest(id: Long, createTime: Long) extends UserAction
 
   private case object Sync extends UserAction
 
