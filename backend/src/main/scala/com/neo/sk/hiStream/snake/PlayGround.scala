@@ -82,7 +82,7 @@ object PlayGround {
           grid.update()
 
           if (tickCount % 20 == 5) {
-            val gridData = grid.getGridData()
+            val gridData = grid.getGridData
             dispatch(gridData)
           } else {
             if (tickCount % 2 == 0) {
