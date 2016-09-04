@@ -53,7 +53,7 @@ trait Grid {
 
 
   def update() = {
-    println(s"-------- grid update frameCount= $frameCount ---------")
+    //println(s"-------- grid update frameCount= $frameCount ---------")
     updateSnakes()
     updateSpots()
     actionMap -= frameCount
