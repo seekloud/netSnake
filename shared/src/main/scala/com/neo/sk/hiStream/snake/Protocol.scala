@@ -16,9 +16,12 @@ object Protocol {
     appleDetails: List[Ap]
   ) extends GameMessage
 
-  case class AppleSync(
+
+  case class FeedApples(
     aLs: List[Ap]
   ) extends GameMessage
+
+
 
   case class TextMsg(
     msg: String

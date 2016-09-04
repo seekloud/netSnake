@@ -88,12 +88,13 @@ object NetGameHolder extends js.JSApp {
     if (firstCome) {
       ctx.font = "36px Helvetica"
       ctx.fillText("Welcome.", 150, 180)
-      firstCome = false
     } else {
       ctx.font = "36px Helvetica"
       ctx.fillText("Ops, connection lost.", 150, 180)
     }
   }
+
+
 
   def gameLoop(): Unit = {
     if (wsSetup) {
@@ -120,6 +121,7 @@ object NetGameHolder extends js.JSApp {
   }
 
   def drawGrid(uid: Long, data: GridDataSync): Unit = {
+
     ctx.fillStyle = Color.Black.toString()
     ctx.fillRect(0, 0, bounds.x * canvasUnit, bounds.y * canvasUnit)
 
@@ -172,17 +174,22 @@ object NetGameHolder extends js.JSApp {
     val leftBegin = 10
     val rightBegin = canvasBoundary.x - 150
 
-
     snakes.find(_.id == uid) match {
       case Some(mySnake) =>
+        firstCome = false
         val baseLine = 1
         ctx.font = "12px Helvetica"
         drawTextLine(s"YOU: id=[${mySnake.id}]    name=[${mySnake.name.take(32)}]", leftBegin, 0, baseLine)
         drawTextLine(s"your kill = ${mySnake.kill}", leftBegin, 1, baseLine)
         drawTextLine(s"your length = ${mySnake.length} ", leftBegin, 2, baseLine)
       case None =>
-        ctx.font = "36px Helvetica"
-        ctx.fillText("Ops, Press Space Key To Restart!", 150, 180)
+        if(firstCome) {
+          ctx.font = "36px Helvetica"
+          ctx.fillText("Please wait.", 150, 180)
+        } else {
+          ctx.font = "36px Helvetica"
+          ctx.fillText("Ops, Press Space Key To Restart!", 150, 180)
+        }
     }
 
     ctx.font = "12px Helvetica"
@@ -263,8 +270,8 @@ object NetGameHolder extends js.JSApp {
           //writeToArea(s"rank update. current = $current") //for debug.
           currentRank = current
           historyRank = history
-        case Protocol.AppleSync(apples) =>
-          //writeToArea(s"apple update = $apples") //for debug.
+        case Protocol.FeedApples(apples) =>
+          writeToArea(s"apple feeded = $apples") //for debug.
           grid.grid ++= apples.map(a => Point(a.x, a.y) -> Apple(a.score, a.life))
         case data: Protocol.GridDataSync =>
           //writeToArea(s"grid data got: $msgData")

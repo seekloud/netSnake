@@ -47,7 +47,7 @@ object PlayGround {
 
       override def receive: Receive = {
         case r@Join(id, name, subscriber) =>
-          log.debug(s"got $r")
+          log.info(s"got $r")
           userMap += (id -> name)
           context.watch(subscriber)
           subscribers += (id -> subscriber)
@@ -56,7 +56,7 @@ object PlayGround {
           dispatch(Protocol.NewSnakeJoined(id, name))
           dispatch(grid.getGridData)
         case r@Left(id, name) =>
-          log.debug(s"got $r")
+          log.info(s"got $r")
           subscribers.get(id).foreach(context.unwatch)
           subscribers -= id
           grid.removeSnake(id)
@@ -71,7 +71,7 @@ object PlayGround {
             dispatch(Protocol.SnakeAction(id, keyCode, grid.frameCount))
           }
         case r@Terminated(actor) =>
-          log.debug(s"got $r")
+          log.warn(s"got $r")
           subscribers.find(_._2.equals(actor)).foreach { case (id, _) =>
             log.debug(s"got Terminated id = $id")
             subscribers -= id
@@ -80,13 +80,13 @@ object PlayGround {
         case Sync =>
           tickCount += 1
           grid.update()
-
+          val feedApples = grid.getFeededApple
           if (tickCount % 20 == 5) {
             val gridData = grid.getGridData
             dispatch(gridData)
           } else {
-            if (tickCount % 2 == 0) {
-              dispatch(grid.getApples)
+            if (feedApples.nonEmpty) {
+              dispatch(Protocol.FeedApples(feedApples))
             }
           }
           if (tickCount % 20 == 1) {

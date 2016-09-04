@@ -18,6 +18,8 @@ class GridOnServer(override val boundary: Point) extends Grid {
 
 
   private[this] var waitingJoin = Map.empty[Long, String]
+  private[this] var feededApples: List[Ap] = Nil
+
 
   var currentRank = List.empty[Score]
   private[this] var historyRankMap = Map.empty[Long, Score]
@@ -40,10 +42,10 @@ class GridOnServer(override val boundary: Point) extends Grid {
   implicit val scoreOrdering = new Ordering[Score] {
     override def compare(x: Score, y: Score): Int = {
       var r = y.k - x.k
-      if(r == 0) {
+      if (r == 0) {
         r = y.l - x.l
       }
-      if(r == 0) {
+      if (r == 0) {
         r = (x.id - y.id).toInt
       }
       r
@@ -74,7 +76,9 @@ class GridOnServer(override val boundary: Point) extends Grid {
   }
 
   override def feedApple(appleCount: Int): Unit = {
-    if (appleCount < snakes.size * 2 + appleNum) {
+    feededApples = Nil
+    var appleNeeded = snakes.size * 2 + appleNum - appleCount
+    while (appleNeeded > 0) {
       val p = randomEmptyPoint()
       val score = random.nextDouble() match {
         case x if x > 0.95 => 10
@@ -82,7 +86,9 @@ class GridOnServer(override val boundary: Point) extends Grid {
         case x => 1
       }
       val apple = Apple(score, appleLife)
+      feededApples ::= Ap(score, appleLife, p.x, p.y)
       grid += (p -> apple)
+      appleNeeded -= 1
     }
   }
 
@@ -91,4 +97,7 @@ class GridOnServer(override val boundary: Point) extends Grid {
     genWaitingSnake()
     updateRanks()
   }
+
+  def getFeededApple = feededApples
+
 }

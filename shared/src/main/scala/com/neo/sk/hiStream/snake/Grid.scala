@@ -188,12 +188,5 @@ trait Grid {
     )
   }
 
-  def getApples = {
-    val apples = grid.collect{
-      case (p, Apple(score, life)) => Ap(score, life, p.x, p.y)
-    }.toList
-    Protocol.AppleSync(apples)
-  }
-
 
 }
