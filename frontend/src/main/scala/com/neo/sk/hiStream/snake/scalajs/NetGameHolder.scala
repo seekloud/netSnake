@@ -1,5 +1,6 @@
 package com.neo.sk.hiStream.snake.scalajs
 
+import com.neo.sk.hiStream.snake.Protocol.GridDataSync
 import com.neo.sk.hiStream.snake._
 import org.scalajs.dom
 import org.scalajs.dom.ext.{Color, KeyCode}
@@ -29,6 +30,8 @@ object NetGameHolder extends js.JSApp {
 
   val grid = new GridOnClient(bounds)
 
+  var firstCome = true
+  var wsSetup = false
   var justSynced = false
 
   val watchKeys = Set(
@@ -70,7 +73,7 @@ object NetGameHolder extends js.JSApp {
       }
     }
 
-    dom.window.setInterval(() => gameLoop(), 150)
+    dom.window.setInterval(() => gameLoop(), Protocol.frameRate)
   }
 
   def drawGameOn(): Unit = {
@@ -79,15 +82,26 @@ object NetGameHolder extends js.JSApp {
   }
 
   def drawGameOff(): Unit = {
-    ctx.fillStyle = Color.Blue.toString()
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.fillStyle = Color.Black.toString()
+    ctx.fillRect(0, 0, bounds.x * canvasUnit, bounds.y * canvasUnit)
+    ctx.fillStyle = "rgb(250, 250, 250)"
+    if (firstCome) {
+      ctx.font = "36px Helvetica"
+      ctx.fillText("Welcome.", 150, 180)
+      firstCome = false
+    } else {
+      ctx.font = "36px Helvetica"
+      ctx.fillText("Ops, connection lost.", 150, 180)
+    }
   }
 
   def gameLoop(): Unit = {
-    if (!justSynced) {
-      update()
-    } else {
-      justSynced = false
+    if (wsSetup) {
+      if (!justSynced) {
+        update()
+      } else {
+        justSynced = false
+      }
     }
     draw()
   }
@@ -97,8 +111,12 @@ object NetGameHolder extends js.JSApp {
   }
 
   def draw(): Unit = {
-    val data = grid.getGridData
-    drawGrid(myId, data)
+    if (wsSetup) {
+      val data = grid.getGridData
+      drawGrid(myId, data)
+    } else {
+      drawGameOff()
+    }
   }
 
   def drawGrid(uid: Long, data: GridDataSync): Unit = {
@@ -110,7 +128,7 @@ object NetGameHolder extends js.JSApp {
     val apples = data.appleDetails
 
     ctx.fillStyle = MyColors.otherBody
-    bodies.foreach { case BodyDetail(id, life, x, y) =>
+    bodies.foreach { case Bd(id, life, x, y) =>
       //println(s"draw body at $p body[$life]")
       if (id == uid) {
         ctx.save()
@@ -122,7 +140,7 @@ object NetGameHolder extends js.JSApp {
       }
     }
 
-    apples.foreach { case AppleDetail(score, life, x, y) =>
+    apples.foreach { case Ap(score, life, x, y) =>
       ctx.fillStyle = score match {
         case 10 => Color.Yellow.toString()
         case 5 => Color.Blue.toString()
@@ -173,7 +191,7 @@ object NetGameHolder extends js.JSApp {
     drawTextLine(s" --- Current Rank --- ", leftBegin, index, currentRankBaseLine)
     currentRank.foreach { score =>
       index += 1
-      drawTextLine(s"[$index]: ${score.name.+("   ").take(3)} kill=${score.kill} len=${score.length}", leftBegin, index, currentRankBaseLine)
+      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} len=${score.l}", leftBegin, index, currentRankBaseLine)
     }
 
     val historyRankBaseLine = 1
@@ -181,7 +199,7 @@ object NetGameHolder extends js.JSApp {
     drawTextLine(s" --- History Rank --- ", rightBegin, index, historyRankBaseLine)
     historyRank.foreach { score =>
       index += 1
-      drawTextLine(s"[$index]: ${score.name.+("   ").take(3)} kill=${score.kill} len=${score.length}", rightBegin, index, historyRankBaseLine)
+      drawTextLine(s"[$index]: ${score.n.+("   ").take(3)} kill=${score.k} len=${score.l}", rightBegin, index, historyRankBaseLine)
     }
 
   }
@@ -199,6 +217,7 @@ object NetGameHolder extends js.JSApp {
     gameStream.onopen = { (event0: Event) =>
       drawGameOn()
       playground.insertBefore(p("Game connection was successful!"), playground.firstChild)
+      wsSetup = true
       canvas.focus()
       canvas.onkeydown = {
         (e: dom.KeyboardEvent) => {
@@ -208,7 +227,6 @@ object NetGameHolder extends js.JSApp {
             if (e.keyCode == KeyCode.F2) {
               gameStream.send("T" + System.currentTimeMillis())
             } else {
-              grid.addAction(myId, e.keyCode)
               gameStream.send(e.keyCode.toString)
             }
             e.preventDefault()
@@ -222,6 +240,7 @@ object NetGameHolder extends js.JSApp {
       drawGameOff()
       playground.insertBefore(p(s"Failed: code: ${event.colno}"), playground.firstChild)
       joinButton.disabled = false
+      wsSetup = false
       nameField.focus()
     }
 
@@ -232,23 +251,26 @@ object NetGameHolder extends js.JSApp {
         case Protocol.TextMsg(message) => writeToArea(s"MESSAGE: $message")
         case Protocol.NewSnakeJoined(id, user) => writeToArea(s"$user joined!")
         case Protocol.SnakeLeft(id, user) => writeToArea(s"$user left!")
-        case Protocol.SnakeAction(id, keyCode) =>
-          if (id != myId) {
-            grid.addAction(id, keyCode)
+        case a@Protocol.SnakeAction(id, keyCode, frame) =>
+          if (frame > grid.frameCount) {
+            //writeToArea(s"!!! got snake action=$a whem i am in frame=${grid.frameCount}")
+          } else {
+            //writeToArea(s"got snake action=$a")
           }
-        case Protocol.SnakesAction(actionMap) =>
-          writeToArea(s"actionMap got = ${actionMap.mkString(";")}") //for debug.
-        //grid.actionMap = actionMap
-        //grid.actionMap -= myId
+          grid.addActionWithFrame(id, keyCode, frame)
 
         case Protocol.Ranks(current, history) =>
-          writeToArea(s"rank update. current = $current") //for debug.
+          //writeToArea(s"rank update. current = $current") //for debug.
           currentRank = current
           historyRank = history
-        case msgData: Protocol.GridDataMessage =>
+        case Protocol.AppleSync(apples) =>
+          //writeToArea(s"apple update = $apples") //for debug.
+          grid.grid ++= apples.map(a => Point(a.x, a.y) -> Apple(a.score, a.life))
+        case data: Protocol.GridDataSync =>
           //writeToArea(s"grid data got: $msgData")
           //TODO here should be better code.
-          val data = msgData.data
+          grid.actionMap = grid.actionMap.filterKeys(_ > data.frameCount)
+          grid.frameCount = data.frameCount
           grid.snakes = data.snakes.map(s => s.id -> s).toMap
           val appleMap = data.appleDetails.map(a => Point(a.x, a.y) -> Apple(a.score, a.life)).toMap
           val bodyMap = data.bodyDetails.map(b => Point(b.x, b.y) -> Body(b.id, b.life)).toMap
@@ -257,8 +279,8 @@ object NetGameHolder extends js.JSApp {
           justSynced = true
         //drawGrid(msgData.uid, data)
         case Protocol.NetDelayTest(createTime) =>
-          val receivetTime = System.currentTimeMillis()
-          val m = s"Net Delay Test: createTime=$createTime, receiveTime=$receivetTime, twoWayDelay=${receivetTime - createTime}"
+          val receiveTime = System.currentTimeMillis()
+          val m = s"Net Delay Test: createTime=$createTime, receiveTime=$receiveTime, twoWayDelay=${receiveTime - createTime}"
           writeToArea(m)
       }
     }
@@ -268,6 +290,7 @@ object NetGameHolder extends js.JSApp {
       drawGameOff()
       playground.insertBefore(p("Connection to game lost. You can try to rejoin manually."), playground.firstChild)
       joinButton.disabled = false
+      wsSetup = false
       nameField.focus()
     }
 

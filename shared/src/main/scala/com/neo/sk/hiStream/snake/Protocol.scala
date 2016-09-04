@@ -9,9 +9,15 @@ object Protocol {
 
   sealed trait GameMessage
 
-  case class GridDataMessage(
-    uid: Long,
-    data: GridDataSync
+  case class GridDataSync(
+    frameCount: Long,
+    snakes: List[SkDt],
+    bodyDetails: List[Bd],
+    appleDetails: List[Ap]
+  ) extends GameMessage
+
+  case class AppleSync(
+    aLs: List[Ap]
   ) extends GameMessage
 
   case class TextMsg(
@@ -22,14 +28,14 @@ object Protocol {
 
   case class NewSnakeJoined(id: Long, name: String) extends GameMessage
 
-  case class SnakesAction(actionMap: Map[Long, Int]) extends GameMessage
-
-  case class SnakeAction(id: Long, keyCode: Int) extends GameMessage
+  case class SnakeAction(id: Long, keyCode: Int, frame: Long) extends GameMessage
 
   case class SnakeLeft(id: Long, name: String) extends GameMessage
 
   case class Ranks(currentRank: List[Score], historyRank: List[Score]) extends GameMessage
 
   case class NetDelayTest(createTime: Long) extends GameMessage
+
+  val frameRate = 150
 
 }

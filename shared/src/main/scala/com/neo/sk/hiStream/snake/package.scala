@@ -14,15 +14,11 @@ package object snake {
   case class Header(id: Long, life: Int) extends Spot
   case class Apple(score: Int, life: Int) extends Spot
 
-  case class Score(id: Long, name: String, kill: Int, length: Int, time: Option[Long] = None)
-  case class BodyDetail(id: Long, life: Int, x: Int, y: Int)
-  case class AppleDetail(score: Int, life: Int, x: Int, y: Int)
+  case class Score(id: Long, n: String, k: Int, l: Int, t: Option[Long] = None)
+  case class Bd(id: Long, life: Int, x: Int, y: Int)
+  case class Ap(score: Int, life: Int, x: Int, y: Int)
 
-  case class GridDataSync(
-    snakes: List[SnakeData],
-    bodyDetails: List[BodyDetail],
-    appleDetails: List[AppleDetail]
-  )
+
 
   case class Point(x: Int, y: Int) {
     def +(other: Point) = Point(x + other.x, y + other.y)
@@ -41,7 +37,7 @@ package object snake {
     var header = Point(x, y)
   }
 
-  case class SnakeData(
+  case class SkDt(
     id: Long,
     name: String,
     header: Point = Point(20, 20),

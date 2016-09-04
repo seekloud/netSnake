@@ -5,7 +5,6 @@ import java.awt.event.KeyEvent
 import akka.actor.{Actor, ActorRef, ActorSystem, Props, Terminated}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Sink, Source}
-import com.neo.sk.hiStream.snake.Protocol.SnakesAction
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext
@@ -55,7 +54,7 @@ object PlayGround {
           grid.addSnake(id, name)
           dispatchTo(id, Protocol.Id(id))
           dispatch(Protocol.NewSnakeJoined(id, name))
-          syncGridData(grid.getGridData)
+          dispatch(grid.getGridData)
         case r@Left(id, name) =>
           log.debug(s"got $r")
           subscribers.get(id).foreach(context.unwatch)
@@ -69,7 +68,7 @@ object PlayGround {
             grid.addSnake(id, userMap.getOrElse(id, "Unknown"))
           } else {
             grid.addAction(id, keyCode)
-            dispatch(Protocol.SnakeAction(id, keyCode))
+            dispatch(Protocol.SnakeAction(id, keyCode, grid.frameCount))
           }
         case r@Terminated(actor) =>
           log.debug(s"got $r")
@@ -80,16 +79,17 @@ object PlayGround {
           }
         case Sync =>
           tickCount += 1
-          if (tickCount % 10 == 5) {
-            val gridData = grid.updateAndGetGridData()
-            syncGridData(gridData)
-          } else {
-            //dispatch(SnakesAction(grid.actionMap))
-            grid.update()
-          }
-          //grid.actionMap = Map.empty
+          grid.update()
 
-          if (tickCount % 10 == 0) {
+          if (tickCount % 20 == 5) {
+            val gridData = grid.getGridData()
+            dispatch(gridData)
+          } else {
+            if (tickCount % 2 == 0) {
+              dispatch(grid.getApples)
+            }
+          }
+          if (tickCount % 20 == 1) {
             dispatch(Protocol.Ranks(grid.currentRank, grid.historyRankList))
           }
         case NetTest(id, createTime) =>
@@ -107,15 +107,12 @@ object PlayGround {
         subscribers.foreach { case (_, ref) => ref ! gameOutPut }
       }
 
-      def syncGridData(gridData: GridDataSync) = {
-        subscribers.foreach { case (id, ref) => ref ! Protocol.GridDataMessage(id, gridData) }
-      }
 
     }
     ), "ground")
 
     import concurrent.duration._
-    system.scheduler.schedule(3 seconds, 150 millis, ground, Sync) // sync tick
+    system.scheduler.schedule(3 seconds, Protocol.frameRate millis, ground, Sync) // sync tick
 
 
     def playInSink(id: Long, name: String) = Sink.actorRef[UserAction](ground, Left(id, name))

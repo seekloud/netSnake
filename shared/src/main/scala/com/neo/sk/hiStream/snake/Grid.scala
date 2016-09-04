@@ -13,8 +13,10 @@ import scala.util.Random
 trait Grid {
 
   val boundary: Point
-  def debug(msg: String) : Unit
-  def info(msg: String) : Unit
+
+  def debug(msg: String): Unit
+
+  def info(msg: String): Unit
 
   val random = new Random(System.nanoTime())
 
@@ -24,12 +26,13 @@ trait Grid {
   val appleLife = 50
   val historyRankLength = 5
 
+  var frameCount = 0l
   var grid = Map[Point, Spot]()
-  var snakes = Map.empty[Long, SnakeData]
-  var actionMap = Map.empty[Long, Int]
+  var snakes = Map.empty[Long, SkDt]
+  var actionMap = Map.empty[Long, Map[Long, Int]]
 
 
-  def removeSnake(id: Long): Option[SnakeData] = {
+  def removeSnake(id: Long): Option[SkDt] = {
     val r = snakes.get(id)
     if (r.isDefined) {
       snakes -= id
@@ -38,12 +41,23 @@ trait Grid {
   }
 
 
-  def addAction(id: Long, keyCode: Int) = actionMap += id -> keyCode
+  def addAction(id: Long, keyCode: Int) = {
+    addActionWithFrame(id, keyCode, frameCount)
+  }
+
+  def addActionWithFrame(id: Long, keyCode: Int, frame: Long) = {
+    val map = actionMap.getOrElse(frame, Map.empty)
+    val tmp = map + (id -> keyCode)
+    actionMap += (frame -> tmp)
+  }
 
 
   def update() = {
+    println(s"-------- grid update frameCount= $frameCount ---------")
     updateSnakes()
     updateSpots()
+    actionMap -= frameCount
+    frameCount += 1
   }
 
   def feedApple(appleCount: Int): Unit
@@ -81,9 +95,9 @@ trait Grid {
 
 
   private[this] def updateSnakes() = {
-    def updateASnake(snake: SnakeData): Either[Long, SnakeData] = {
-      val keyCode = actionMap.get(snake.id)
-      debug(s" +++ snake[${snake.id}] feel key: $keyCode")
+    def updateASnake(snake: SkDt, actMap: Map[Long, Int]): Either[Long, SkDt] = {
+      val keyCode = actMap.get(snake.id)
+      debug(s" +++ snake[${snake.id}] feel key: $keyCode at frame=$frameCount")
       val newDirection = {
         val keyDirection = keyCode match {
           case Some(KeyEvent.VK_LEFT) => Point(-1, 0)
@@ -116,9 +130,11 @@ trait Grid {
 
 
     var mapKillCounter = Map.empty[Long, Int]
-    var updatedSnakes = List.empty[SnakeData]
+    var updatedSnakes = List.empty[SkDt]
 
-    snakes.values.map(updateASnake).foreach {
+    val acts = actionMap.getOrElse(frameCount, Map.empty[Long, Int])
+
+    snakes.values.map(updateASnake(_, acts)).foreach {
       case Right(s) => updatedSnakes ::= s
       case Left(killerId) =>
         mapKillCounter += killerId -> (mapKillCounter.getOrElse(killerId, 0) + 1)
@@ -157,20 +173,26 @@ trait Grid {
   }
 
   def getGridData = {
-
-    var bodyDetails: List[BodyDetail] = Nil
-    var appleDetails: List[AppleDetail] = Nil
-
+    var bodyDetails: List[Bd] = Nil
+    var appleDetails: List[Ap] = Nil
     grid.foreach {
-      case (p, Body(id, life)) => bodyDetails ::= BodyDetail(id, life, p.x, p.y)
-      case (p, Apple(score, life)) => appleDetails ::= AppleDetail(score, life, p.x, p.y)
-      case (p, Header(id, life)) => bodyDetails ::= BodyDetail(id, life, p.x, p.y)
+      case (p, Body(id, life)) => bodyDetails ::= Bd(id, life, p.x, p.y)
+      case (p, Apple(score, life)) => appleDetails ::= Ap(score, life, p.x, p.y)
+      case (p, Header(id, life)) => bodyDetails ::= Bd(id, life, p.x, p.y)
     }
-    GridDataSync(
+    Protocol.GridDataSync(
+      frameCount,
       snakes.values.toList,
       bodyDetails,
       appleDetails
     )
+  }
+
+  def getApples = {
+    val apples = grid.collect{
+      case (p, Apple(score, life)) => Ap(score, life, p.x, p.y)
+    }.toList
+    Protocol.AppleSync(apples)
   }
 
 
