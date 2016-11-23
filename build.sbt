@@ -21,8 +21,21 @@ val scalaJsDomV = "0.9.0"
 val scalaJsjqueryV = "0.9.0"
 val upickleV = "0.4.2"
 
-lazy val root = (project in file("."))
-  .aggregate(frontend, backend)
+
+
+def commonSettings = Seq(
+  version := "1.2.0",
+  scalaVersion := scalaV
+)
+
+
+lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
+  .settings(name := "hiStream_shared")
+  .settings(commonSettings: _*)
+
+
+lazy val sharedJvm = shared.jvm
+lazy val sharedJs = shared.js
 
 
 // Scala-Js frontend
@@ -43,7 +56,6 @@ lazy val frontend = (project in file("frontend"))
     )
   )
   .dependsOn(sharedJs)
-
 
 
 val projectMainClass = "com.neo.sk.hiStream.Boot"
@@ -97,20 +109,7 @@ lazy val backend = (project in file("backend"))
 
 
 
-lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
-  .settings(name := "hiStream_shared")
-  .settings(commonSettings: _*)
-
-
-lazy val sharedJvm = shared.jvm
-lazy val sharedJs = shared.js
-
-def commonSettings = Seq(
-  version := "1.2.0",
-  scalaVersion := scalaV
-)
-
-
-
+lazy val root = (project in file("."))
+  .aggregate(frontend, backend)
 
 

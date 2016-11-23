@@ -2,7 +2,7 @@ logLevel := Level.Warn
 val sbtRevolverV = "0.7.2"
 val sbtAssemblyV = "0.13.0"
 val sbtPackV = "0.7.9"
-val sbtScalaJsV = "0.6.12"
+val sbtScalaJsV = "0.6.13"
 val coursierV = "1.0.0-M14"
 
 addSbtPlugin("io.get-coursier" % "sbt-coursier" % coursierV)
