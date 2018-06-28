@@ -5,12 +5,11 @@ import java.util.concurrent.atomic.AtomicInteger
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.http.scaladsl.server.Directives._
-import akka.stream.{ActorAttributes, Materializer, Supervision}
 import akka.stream.scaladsl.Flow
+import akka.stream.{ActorAttributes, Materializer, Supervision}
 import akka.util.Timeout
 import com.neo.sk.hiStream.snake.PlayGround
 import org.slf4j.LoggerFactory
-import upickle.default._
 
 import scala.concurrent.ExecutionContextExecutor
 
@@ -20,6 +19,10 @@ import scala.concurrent.ExecutionContextExecutor
   * Time: 4:13 PM
   */
 trait SnakeService {
+
+
+  import io.circe.generic.auto._
+  import io.circe.syntax._
 
   implicit val system: ActorSystem
 
@@ -38,8 +41,8 @@ trait SnakeService {
 
   val netSnakeRoute = {
     (pathPrefix("netSnake") & get) {
-      pathSingleSlash {
-        getFromResource("web/netSnake.html")
+      pathEndOrSingleSlash {
+        getFromResource("html/netSnake.html")
       } ~
       path("join") {
         parameter('name) { name =>
@@ -62,7 +65,8 @@ trait SnakeService {
         // FIXME: We need to handle TextMessage.Streamed as well.
       }
       .via(playGround.joinGame(idGenerator.getAndIncrement().toLong, sender)) // ... and route them through the chatFlow ...
-      .map { msg => TextMessage.Strict(write(msg)) // ... pack outgoing messages into WS JSON messages ...
+      .map { msg => TextMessage.Strict(msg.asJson.noSpaces) // ... pack outgoing messages into WS JSON messages ...
+      //.map { msg => TextMessage.Strict(write(msg)) // ... pack outgoing messages into WS JSON messages ...
     }.withAttributes(ActorAttributes.supervisionStrategy(decider))    // ... then log any processing errors on stdin
 
 

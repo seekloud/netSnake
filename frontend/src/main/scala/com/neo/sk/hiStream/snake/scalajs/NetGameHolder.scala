@@ -6,10 +6,8 @@ import org.scalajs.dom
 import org.scalajs.dom.ext.{Color, KeyCode}
 import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
-import upickle.default._
 
 import scala.scalajs.js
-import scala.scalajs.js.typedarray.{Int8Array, Uint8Array}
 
 /**
   * User: Taoz
@@ -251,8 +249,13 @@ object NetGameHolder extends js.JSApp {
       nameField.focus()
     }
 
+
+    import io.circe.generic.auto._
+    import io.circe.parser._
+
     gameStream.onmessage = { (event: MessageEvent) =>
-      val wsMsg = read[Protocol.GameMessage](event.data.toString)
+      //val wsMsg = read[Protocol.GameMessage](event.data.toString)
+      val wsMsg = decode[Protocol.GameMessage](event.data.toString).right.get
       wsMsg match {
         case Protocol.Id(id) => myId = id
         case Protocol.TextMsg(message) => writeToArea(s"MESSAGE: $message")

@@ -1,13 +1,10 @@
 package com.neo.sk.hiStream.http
 
 import akka.actor.{ActorRef, ActorSystem}
-import akka.event.LoggingAdapter
-import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.http.scaladsl.server.Directives._
-import akka.stream.{ActorAttributes, Materializer, OverflowStrategy, Supervision}
 import akka.stream.scaladsl.{Flow, Sink, Source}
+import akka.stream.{Materializer, OverflowStrategy}
 import akka.util.Timeout
-import upickle.default._
 
 import scala.concurrent.ExecutionContextExecutor
 
@@ -16,33 +13,22 @@ import scala.concurrent.ExecutionContextExecutor
   * Date: 8/26/2016
   * Time: 10:27 PM
   */
-trait HttpService extends SnakeService{
+trait HttpService extends SnakeService with ResourceService{
 
 
   implicit val system: ActorSystem
 
-  implicit def executor: ExecutionContextExecutor
+  implicit val executor: ExecutionContextExecutor
 
   implicit val materializer: Materializer
 
   implicit val timeout: Timeout
 
 
-  val resourceRoutes = {
-
-
-    (path("frontend-launcher.js") & get) {
-      getFromResource("histream_frontend-launcher.js")
-    } ~
-    (path("frontend-fastopt.js") & get) {
-      getFromResource("histream_frontend-fastopt.js")
-    }
-
-  }
 
   val snakeRoute = {
     (path("snake") & get) {
-      getFromResource("web/mySnake.html")
+      getFromResource("html/mySnake.html")
     }
   }
 

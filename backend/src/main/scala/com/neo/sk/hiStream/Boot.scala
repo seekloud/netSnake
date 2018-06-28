@@ -7,6 +7,8 @@ import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import com.neo.sk.hiStream.http.HttpService
 
+import scala.language.postfixOps
+
 /**
   * User: Taoz
   * Date: 8/26/2016
