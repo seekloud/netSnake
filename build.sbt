@@ -6,7 +6,7 @@ val scalaV = "2.12.6"
 //val scalaV = "2.11.8"
 
 val projectName = "hiStream"
-val projectVersion = "1.2.0"
+val projectVersion = "1.2.1"
 
 val projectMainClass = "com.neo.sk.hiStream.Boot"
 
