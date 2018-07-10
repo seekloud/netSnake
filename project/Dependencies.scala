@@ -1,5 +1,4 @@
 import sbt._
-import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 
 
 /**
@@ -81,25 +80,5 @@ object Dependencies {
      // "com.lihaoyi" %% "upickle" % "0.6.6"
     )
 
-
-  val frontendDependencies: Seq[sbt.ModuleID] ={
-    Seq(
-      //      "io.circe" %%% "circe-core" % "0.8.0",
-      //      "io.circe" %%% "circe-generic" % "0.8.0",
-      //      "io.circe" %%% "circe-parser" % "0.8.0",
-      "io.circe" %%% "circe-core" % Dependencies.circeVersion withSources(),
-      "io.circe" %%% "circe-generic" % Dependencies.circeVersion,
-      "io.circe" %%% "circe-parser" % Dependencies.circeVersion,
-      "org.scala-js" %%% "scalajs-dom" % Dependencies.scalaJsDomV,
-      "in.nvilla" %%% "monadic-html" % Dependencies.monadicHtmlV withSources(),
-      //"in.nvilla" %%% "monadic-rx-cats" % "0.4.0-RC1",
-      "com.lihaoyi" %%% "scalatags" % Dependencies.scalaTagsV withSources(),
-      "com.github.japgolly.scalacss" %%% "core" % Dependencies.scalaCssV withSources()
-      //"com.lihaoyi" %%% "upickle" % upickleV,
-      //"io.suzaku" %%% "diode" % "1.1.2",
-      //"org.scala-js" %%% "scalajs-java-time" % scalaJsJavaTime
-      //"com.lihaoyi" %%% "utest" % "0.3.0" % "test"
-    )
-  }
 
 }
