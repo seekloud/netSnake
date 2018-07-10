@@ -1,5 +1,4 @@
 import sbt.Keys._
-import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 
 name := "hiStream"
 

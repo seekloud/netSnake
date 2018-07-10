@@ -10,7 +10,7 @@ val sbtScalaJsV = "0.6.24"
 //val coursierV = "1.0.0-RC3"
 val buildinfoV = "0.6.1"
 
-addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "0.4.0")
+addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "0.5.0")
 
 
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % sbtScalaJsV)
