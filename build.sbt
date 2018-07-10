@@ -69,14 +69,14 @@ lazy val backend = (project in file("backend")).enablePlugins(PackPlugin)
     mainClass in reStart := Some(projectMainClass),
     javaOptions in reStart += "-Xmx2g"
   )
-  .settings(name := "backend")
+  .settings(name := "hiStream")
   .settings(
     //pack
     // If you need to specify main classes manually, use packSettings and packMain
     //packSettings,
     // [Optional] Creating `hello` command that calls org.mydomain.Hello#main(Array[String])
     packMain := Map("hiStream" -> projectMainClass),
-    packJvmOpts := Map("hiStream" -> Seq("-Xmx64m", "-Xms32m")),
+    packJvmOpts := Map("hiStream" -> Seq("-Xmx256m", "-Xms64m")),
     packExtraClasspath := Map("hiStream" -> Seq("."))
   )
   .settings(
@@ -114,7 +114,8 @@ lazy val backend = (project in file("backend")).enablePlugins(PackPlugin)
   .dependsOn(sharedJvm)
 
 lazy val root = (project in file("."))
+  .settings(commonSettings: _*)
   .aggregate(frontend, backend)
-  .settings(name := projectName)
+  .settings(name := "root")
 
 
