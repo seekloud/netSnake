@@ -49,10 +49,10 @@ object NetGameHolder {
     val otherBody = "#696969"
   }
 
-  private[this] val nameField = dom.document.getElementById("name").asInstanceOf[HTMLInputElement]
-  private[this] val joinButton = dom.document.getElementById("join").asInstanceOf[HTMLButtonElement]
-  private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
-  private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+  private[this] lazy val nameField = dom.document.getElementById("name").asInstanceOf[HTMLInputElement]
+  private[this] lazy val joinButton = dom.document.getElementById("join").asInstanceOf[HTMLButtonElement]
+  private[this] lazy val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
+  private[this] lazy val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
 
   @JSExport
   def run(): Unit = {
@@ -92,7 +92,6 @@ object NetGameHolder {
       ctx.fillText("Ops, connection lost.", 150, 180)
     }
   }
-
 
 
   def gameLoop(): Unit = {
@@ -182,7 +181,7 @@ object NetGameHolder {
         drawTextLine(s"your kill = ${mySnake.kill}", leftBegin, 1, baseLine)
         drawTextLine(s"your length = ${mySnake.length} ", leftBegin, 2, baseLine)
       case None =>
-        if(firstCome) {
+        if (firstCome) {
           ctx.font = "36px Helvetica"
           ctx.fillText("Please wait.", 150, 180)
         } else {
