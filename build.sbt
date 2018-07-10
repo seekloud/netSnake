@@ -1,4 +1,5 @@
 import sbt.Keys._
+import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 
 name := "hiStream"
 
@@ -46,19 +47,9 @@ lazy val frontend = (project in file("frontend"))
     ))
   .settings(skip in packageJSDependencies := false)
   .settings(
-    scalaJSUseMainModuleInitializer := true,
+    scalaJSUseMainModuleInitializer := false,
     //mainClass := Some("com.neo.sk.virgour.front.Main"),
-    libraryDependencies ++= Seq(
-      "io.circe" %%% "circe-core" % "0.8.0",
-      "io.circe" %%% "circe-generic" % "0.8.0",
-      "io.circe" %%% "circe-parser" % "0.8.0",
-      "org.scala-js" %%% "scalajs-dom" % "0.9.2",
-      "io.suzaku" %%% "diode" % "1.1.2",
-      //"com.lihaoyi" %%% "upickle" % "0.6.6",
-      "com.lihaoyi" %%% "scalatags" % "0.6.5"
-      //"org.scala-js" %%% "scalajs-java-time" % scalaJsJavaTime
-      //"com.lihaoyi" %%% "utest" % "0.3.0" % "test"
-    )
+    libraryDependencies ++= Dependencies.frontendDependencies
   )
   .dependsOn(sharedJs)
 

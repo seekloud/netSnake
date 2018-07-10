@@ -1,4 +1,6 @@
 import sbt._
+import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
+
 
 /**
   * User: Taoz
@@ -16,10 +18,10 @@ object Dependencies {
   val scalaXmlV = "1.1.0"
   val circeVersion = "0.9.3"
 
-  val scalaJsDomV = "0.9.2"
-
-
-  val scalaTagsV = "0.6.5"
+  val scalaJsDomV = "0.9.6"
+  val scalaTagsV = "0.6.7"
+  val monadicHtmlV = "0.4.0-RC1"
+  val scalaCssV = "0.5.5"
   val diodeV = "1.1.2"
 
 
@@ -58,7 +60,7 @@ object Dependencies {
 
 
 
-  val backendDependencies =
+  val backendDependencies: Seq[ModuleID] =
     Dependencies.akkaSeq ++
     Dependencies.akkaHttpSeq ++
     Dependencies.circeSeq ++
@@ -80,5 +82,24 @@ object Dependencies {
     )
 
 
+  val frontendDependencies: Seq[sbt.ModuleID] ={
+    Seq(
+      //      "io.circe" %%% "circe-core" % "0.8.0",
+      //      "io.circe" %%% "circe-generic" % "0.8.0",
+      //      "io.circe" %%% "circe-parser" % "0.8.0",
+      "io.circe" %%% "circe-core" % Dependencies.circeVersion withSources(),
+      "io.circe" %%% "circe-generic" % Dependencies.circeVersion,
+      "io.circe" %%% "circe-parser" % Dependencies.circeVersion,
+      "org.scala-js" %%% "scalajs-dom" % Dependencies.scalaJsDomV,
+      "in.nvilla" %%% "monadic-html" % Dependencies.monadicHtmlV withSources(),
+      //"in.nvilla" %%% "monadic-rx-cats" % "0.4.0-RC1",
+      "com.lihaoyi" %%% "scalatags" % Dependencies.scalaTagsV withSources(),
+      "com.github.japgolly.scalacss" %%% "core" % Dependencies.scalaCssV withSources()
+      //"com.lihaoyi" %%% "upickle" % upickleV,
+      //"io.suzaku" %%% "diode" % "1.1.2",
+      //"org.scala-js" %%% "scalajs-java-time" % scalaJsJavaTime
+      //"com.lihaoyi" %%% "utest" % "0.3.0" % "test"
+    )
+  }
 
 }

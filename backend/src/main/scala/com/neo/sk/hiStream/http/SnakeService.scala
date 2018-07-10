@@ -34,9 +34,7 @@ trait SnakeService {
 
   lazy val playGround = PlayGround.create(system)
 
-  lazy val chatRoom = ""
-
-  val idGenerator = new AtomicInteger(1000000)
+  private val idGenerator = new AtomicInteger(1000000)
 
   private[this] val log = LoggerFactory.getLogger("com.neo.sk.hiStream.http.SnakeService")
 
@@ -72,7 +70,7 @@ trait SnakeService {
     }.withAttributes(ActorAttributes.supervisionStrategy(decider))    // ... then log any processing errors on stdin
 
 
-  val decider: Supervision.Decider = {
+  private val decider: Supervision.Decider = {
     e: Throwable =>
       e.printStackTrace()
       println(s"WS stream failed with $e")

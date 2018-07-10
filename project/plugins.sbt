@@ -5,10 +5,9 @@ val sbtRevolverV = "0.9.1"
 val sbtAssemblyV = "0.14.6"
 //val sbtPackV = "0.9.2"
 val sbtPackV = "0.10.1"
-val sbtScalaJsV = "0.6.23"
+val sbtScalaJsV = "0.6.24"
 //val coursierV = "1.0.0-M15"
 //val coursierV = "1.0.0-RC3"
-val coursierV = "1.0.0"
 val buildinfoV = "0.6.1"
 
 addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "0.4.0")

@@ -1,10 +1,10 @@
-package com.neo.sk.hiStream.chat
+package com.neo.sk.hiStream.front.chat
 
 import akka.NotUsed
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Sink, Source}
-import com.neo.sk.hiStream.chat.RoomMaster.{JoinRoom, LeftRoom}
+import com.neo.sk.hiStream.front.chat.RoomMaster.{JoinRoom, LeftRoom}
 import com.neo.sk.hiStream.snake.Protocol
 import org.slf4j.LoggerFactory
 

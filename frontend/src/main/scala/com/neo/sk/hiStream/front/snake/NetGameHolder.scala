@@ -1,4 +1,4 @@
-package com.neo.sk.hiStream.snake.scalajs
+package com.neo.sk.hiStream.front.snake
 
 import com.neo.sk.hiStream.snake.Protocol.GridDataSync
 import com.neo.sk.hiStream.snake._
@@ -7,14 +7,15 @@ import org.scalajs.dom.ext.{Color, KeyCode}
 import org.scalajs.dom.html.{Document => _, _}
 import org.scalajs.dom.raw._
 
-import scala.scalajs.js
+import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 
 /**
   * User: Taoz
   * Date: 9/1/2016
   * Time: 12:45 PM
   */
-object NetGameHolder extends js.JSApp {
+@JSExportTopLevel("snake.NetGameHolder")
+object NetGameHolder {
 
 
   val bounds = Point(Boundary.w, Boundary.h)
@@ -53,8 +54,8 @@ object NetGameHolder extends js.JSApp {
   private[this] val canvas = dom.document.getElementById("GameView").asInstanceOf[Canvas]
   private[this] val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
 
-  @scala.scalajs.js.annotation.JSExport
-  override def main(): Unit = {
+  @JSExport
+  def run(): Unit = {
     drawGameOff()
     canvas.width = canvasBoundary.x
     canvas.height = canvasBoundary.y
@@ -241,12 +242,13 @@ object NetGameHolder extends js.JSApp {
       event0
     }
 
-    gameStream.onerror = { (event: ErrorEvent) =>
+    gameStream.onerror = { (event: Event) =>
       drawGameOff()
-      playground.insertBefore(p(s"Failed: code: ${event.colno}"), playground.firstChild)
+      playground.insertBefore(p(s"Failed: code: ${event.`type`}"), playground.firstChild)
       joinButton.disabled = false
       wsSetup = false
       nameField.focus()
+
     }
 
 

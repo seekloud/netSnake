@@ -1,7 +1,9 @@
 package com.neo.sk.hiStream.http
 
+import akka.NotUsed
 import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.stream.{Materializer, OverflowStrategy}
 import akka.util.Timeout
@@ -13,7 +15,7 @@ import scala.concurrent.ExecutionContextExecutor
   * Date: 8/26/2016
   * Time: 10:27 PM
   */
-trait HttpService extends SnakeService with ResourceService{
+trait HttpService extends SnakeService with ChatService with ResourceService{
 
 
   implicit val system: ActorSystem
@@ -33,24 +35,25 @@ trait HttpService extends SnakeService with ResourceService{
   }
 
 
-  val routes =
+  val routes: Route =
     pathPrefix("hiStream") {
       snakeRoute ~
       netSnakeRoute ~
+      chatRoute ~
       resourceRoutes
     }
 
 
 
 
-  def tmp = {
+  def tmp: Flow[Any, Nothing, NotUsed] = {
     val out = Source.empty
     val in = Sink.ignore
     Flow.fromSinkAndSource(in, out)
   }
 
 
-  def tmp2 = {
+  def tmp2(): Unit = {
 
     val sink = Sink.ignore
     def chatFlow(sender: String): Flow[String, String, Any] = {
