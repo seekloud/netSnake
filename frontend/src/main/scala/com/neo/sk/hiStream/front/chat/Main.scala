@@ -1,5 +1,6 @@
 package com.neo.sk.hiStream.front.chat
 
+import com.neo.sk.hiStream.front.snake.NetGameHolder.getWebSocketUri
 import com.neo.sk.hiStream.front.utils.Component
 import org.scalajs.dom
 
@@ -7,7 +8,7 @@ import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 import mhtml._
 import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.{Input, TextArea}
-import org.scalajs.dom.raw.{Event, KeyboardEvent}
+import org.scalajs.dom.raw._
 
 import scala.xml.Elem
 
@@ -38,12 +39,49 @@ object MainPage extends Component {
   private var username = ""
   private var messageInput: Option[Input] = None
   private var boardElement: Option[TextArea] = None
-
+  private var wsConnection: Option[WebSocket] = None
   private val messageBoard: Var[String] = Var("")
 
-  private def joinRoom(name: String): Unit = {
-    println(s"$name click join button.")
+  private def getWebSocketUri(nameOfChatParticipant: String): String = {
+    val wsProtocol = if (dom.document.location.protocol == "https:") "wss" else "ws"
+    s"$wsProtocol://${dom.document.location.host}/hiStream/chat/join?name=$nameOfChatParticipant"
   }
+
+  private def joinRoom(name: String): Unit = {
+    if(wsConnection.exists(_.readyState >= 2)){
+      println(s"$name click join button.")
+      val wsUrl = getWebSocketUri(name)
+      println(s"wsUrl: $wsUrl")
+      val con = new WebSocket(wsUrl)
+      wsConnection = Some(con)
+      con.onopen = wsOnOpen _
+      con.onmessage = wsOnMessage _
+      con.onclose = wsOnClose _
+      con.onerror = wsOnError _
+    }
+
+  }
+
+
+  private def wsOnOpen(ev: Event): Unit = {
+    println("wsOnOpen:" + ev.`type`)
+  }
+
+
+  private def wsOnMessage(ev: MessageEvent): Unit = {
+    println("wsOnMessage:" + ev.data.toString)
+  }
+
+
+  private def wsOnError(ev: Event): Unit = {
+    println("wsOnError:" + ev.`type`)
+  }
+
+
+  private def wsOnClose(ev: CloseEvent): Unit = {
+    println(s"wsOnClose: [${ev.code}, ${ev.reason}, ${ev.wasClean}]" )
+  }
+
 
   private def sendMessage(): Unit = {
     val msg = messageInput.map(_.value).getOrElse("NULL")
@@ -86,3 +124,15 @@ object MainPage extends Component {
 
 
 }
+
+
+object WsConnection {
+
+  val gameStream = new WebSocket("")
+
+  def connect(): Unit = {
+
+  }
+
+}
+

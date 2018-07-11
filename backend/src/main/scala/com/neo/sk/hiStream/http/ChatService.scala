@@ -48,6 +48,7 @@ trait ChatService {
       } ~
       path("join") {
         parameter('name) { name =>
+          println(s"Got a join connection: $name")
           handleWebSocketMessages(webSocketChatFlow(name))
         }
       }
