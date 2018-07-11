@@ -1,14 +1,14 @@
-package com.neo.sk.hiStream.front.chat
+package com.neo.sk.hiStream.chat
 
 import akka.NotUsed
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Sink, Source}
-import com.neo.sk.hiStream.front.chat.RoomMaster.{JoinRoom, LeftRoom}
-import com.neo.sk.hiStream.snake.Protocol
+import com.neo.sk.hiStream.chat.RoomMaster.{JoinRoom, LeftRoom}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext
+import scala.language.postfixOps
 
 /**
   * User: Taoz
@@ -46,16 +46,8 @@ object ChatRoom {
       override def join(id: Int, name: String): Flow[String, String, Any] = {
         val in =
           Flow[String]
-            .map { s =>
-              if (s.startsWith("T")) {
-                val timestamp = s.substring(1).toLong
-                NetTest(id, timestamp).toString
-              } else {
-                Key(id, s.toInt).toString
-              }
-            }
+            .map { s => s }
             .to(playInSink(id, name, room))
-
         val out =
           Source.actorRef[String](3, OverflowStrategy.dropHead)
             .mapMaterializedValue(outActor => room ! JoinRoom(id, name, outActor))
@@ -79,11 +71,19 @@ object RoomMaster {
 
 class RoomMaster extends Actor {
 
+  import concurrent.duration._
+
   private var peer: Option[ActorRef] = None
   private val log = LoggerFactory.getLogger(this.getClass)
 
+  import context.dispatcher
+
+  val keepAlive =
+    context.system.scheduler.schedule(0 second, 3 second, self, "\u0001")
 
   override def receive: Receive = {
+    case "\u0001" =>
+      peer.foreach(_ ! "\u0001")
     case JoinRoom(id, name, userRef) =>
       log.info(s"$id joined room by [$name]")
       peer = Some(userRef)
