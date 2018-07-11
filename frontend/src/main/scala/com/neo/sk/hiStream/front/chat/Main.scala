@@ -5,8 +5,9 @@ import org.scalajs.dom
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 import mhtml._
-import org.scalajs.dom.html.TextArea
-import org.scalajs.dom.raw.Event
+import org.scalajs.dom.ext.KeyCode
+import org.scalajs.dom.html.{Input, TextArea}
+import org.scalajs.dom.raw.{Event, KeyboardEvent}
 
 import scala.xml.Elem
 
@@ -35,7 +36,7 @@ object Main {
 object MainPage extends Component {
 
   private var username = ""
-  private var messageInput = ""
+  private var messageInput: Option[Input] = None
   private var boardElement: Option[TextArea] = None
 
   private val messageBoard: Var[String] = Var("")
@@ -44,7 +45,8 @@ object MainPage extends Component {
     println(s"$name click join button.")
   }
 
-  private def sendMessage(msg: String): Unit = {
+  private def sendMessage(): Unit = {
+    val msg = messageInput.map(_.value).getOrElse("NULL")
     messageBoard.update { current =>
       current + "\n" +
       s"$username: " + msg
@@ -53,6 +55,7 @@ object MainPage extends Component {
       println("move down...")
       b.scrollTop = b.scrollHeight
     }
+    messageInput.foreach(_.value = "")
   }
 
   override def render: Elem = {
@@ -73,12 +76,11 @@ object MainPage extends Component {
       </div>
 
 
-      <input placeholder="say something."
-             style="width:300px"
-             onchange={e: Event => messageInput = e.target.asInstanceOf[dom.html.Input].value}>
-        {messageInput}
+      <input style="width:300px"
+             onkeydown={e: KeyboardEvent => if (e.keyCode == KeyCode.Enter) sendMessage()}
+             mhtml-onmount={e: Input => messageInput = Some(e)}>
       </input>
-      <button onclick={() => sendMessage(messageInput)}>send</button>
+      <button onclick={() => sendMessage()}>send</button>
     </div>
   }
 
