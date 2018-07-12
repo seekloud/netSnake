@@ -2,6 +2,7 @@ package com.neo.sk.hiStream.front.chat
 
 import java.nio.ByteBuffer
 
+import com.neo.sk.hiStream.chat.Protocol.TestMessage
 import com.neo.sk.hiStream.front.snake.NetGameHolder.getWebSocketUri
 import com.neo.sk.hiStream.front.utils.Component
 import org.scalajs.dom
@@ -13,7 +14,7 @@ import org.scalajs.dom.html.{Input, TextArea}
 import org.scalajs.dom.raw._
 
 import scala.scalajs.js
-import scala.scalajs.js.typedarray.{ArrayBuffer, DataView, Uint8Array}
+import scala.scalajs.js.typedarray.{ArrayBuffer, DataView, Int8Array, Uint8Array}
 import scala.xml.Elem
 
 /**
@@ -88,10 +89,37 @@ object MainPage extends Component {
       case blobMsg: Blob =>
         println(s"got blob msg: $blobMsg")
 
+
         val fr = new FileReader()
         fr.readAsArrayBuffer(blobMsg)
-        fr.onload = { _: Event =>
+        fr.onloadend = { _: Event =>
           val buf = fr.result.asInstanceOf[ArrayBuffer]
+
+          println(s"load length: ${buf.byteLength}")
+
+          val b = new Int8Array(buf)
+          println(s"b length: ${b.length}")
+          for (i <- 0 until 10){
+//            val s = Integer.toHexString(b.get(i) & 0xFF)
+            println(s"[$i] byte: [${b.get(i) }]")
+          }
+
+          val middleDataInJs = new MiddleDataInJs()
+          middleDataInJs.init(buf)
+
+          val data = TestMessage.decode(middleDataInJs)
+          val msg = data.data
+
+          println(s"msg: ${data.id}")
+          println(s"msg: ${data.data}")
+          println(s"msg: ${data.ls.mkString(",")}")
+          if (msg != "\u0001") {
+            messageBoard.update { current =>
+              current + "\n" +
+              s"$username: " + msg
+            }
+          }
+          /*
           val bs = new Uint8Array(buf)
           val len = bs.get(0)
           val bytes = new Array[Byte](len)
@@ -107,7 +135,11 @@ object MainPage extends Component {
               current + "\n" +
               s"$username: " + msg
             }
-          }
+          }*/
+
+
+
+
         }
 
       case abMsg: ArrayBuffer =>
@@ -134,11 +166,17 @@ object MainPage extends Component {
     val msg = messageInput.map(_.value).getOrElse("NULL")
 
     //    wsConnection.foreach(_.send(msg))
-    /*    wsConnection.foreach{ ws =>
-          val blobMsg = new Blob(js.Array(msg), BlobPropertyBag("application/octet-stream"))
+
+
+    /*    wsConnection.foreach { ws =>
+          val data = msg.getBytes("utf-8")
+
+          val a = js.Array(data)
+          val b = js.JSArrayOps(data)
+          val blobMsg = new Blob(js.Array(), BlobPropertyBag("application/octet-stream"))
           ws.send(blobMsg)
         }*/
-
+    import js.JSConverters._
     wsConnection.foreach { ws =>
       val data = msg.getBytes("utf-8")
       val len = data.size.toShort
@@ -146,10 +184,13 @@ object MainPage extends Component {
       val bs = new Uint8Array(ab)
       bs.set(0, len)
       println(s"set len to: $len")
-      for (i <- 0 until len) {
-        println(s"set $i to ${data(i)}")
-        bs.set(i + 1, data(i))
-      }
+      println(s"set all data at once.")
+      bs.set(data.toJSArray, 1)
+
+      //          for (i <- 0 until len) {
+      //            println(s"set $i to ${data(i)}")
+      //            bs.set(i + 1, data(i))
+      //          }
       ws.send(ab)
     }
 

@@ -1,5 +1,6 @@
 package com.neo.sk.hiStream.http
 
+import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicInteger
 
 import akka.NotUsed
@@ -11,7 +12,8 @@ import akka.http.scaladsl.server.Route
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.stream.{ActorAttributes, Materializer, Supervision}
 import akka.util.{ByteString, Timeout}
-import com.neo.sk.hiStream.chat.ChatRoom
+import com.neo.sk.hiStream.chat.{ChatRoom, MiddleDataInJvm}
+import com.neo.sk.hiStream.chat.Protocol.TestMessage
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContextExecutor
@@ -65,6 +67,7 @@ trait ChatService {
         case BinaryMessage.Strict(bMsg) =>
 
 
+
           val buffer = bMsg.asByteBuffer
           val len = buffer.get().toShort
           val bytes = new Array[Byte](len)
@@ -75,9 +78,6 @@ trait ChatService {
           }
 
           val msg = new String(bytes, "utf-8")
-
-
-
 
           //println(s"got BinaryMessage $msg, len=${msg.length} size=${bMsg.toList.length}")
 
@@ -90,10 +90,29 @@ trait ChatService {
       }
       .via(chatRoom.join(idGenerator.getAndIncrement(), nickname)) // ... and route them through the chatFlow ...
       //.map { msg => TextMessage.Strict(msg) // ... pack outgoing messages into WS JSON messages ...
-      .map { msg => BinaryMessage.Strict(ByteString(str2bytes(msg))) // ... pack outgoing messages into WS JSON messages ...
+      .map { msg => BinaryMessage.Strict(ByteString(str2byteBuffer(msg))) // ... pack outgoing messages into WS JSON messages ...
     }.withAttributes(ActorAttributes.supervisionStrategy(decider)) // ... then log any processing errors on stdin
 
+
+  var c = 10
+
+
+  private def str2byteBuffer(str: String) = {
+    val id = (System.currentTimeMillis() / 10000).toInt
+    println(s"id: $id")
+    val ls = new Range(0, id % 5, 1).toArray.map( _ + 0.1f)
+    val msg = TestMessage(id, str, ls)
+    val middleData = new MiddleDataInJvm()
+    TestMessage.encode(msg, middleData)
+    val r = middleData.result
+    println(s"send msg: $msg")
+    println(s"send bytes: ${r.mkString(",")}")
+    r
+  }
+
+
   private def str2bytes(str: String): Array[Byte] = {
+
     val data = str.getBytes("utf-8")
     val len = data.length
     val array = new Array[Byte](len + 1)
