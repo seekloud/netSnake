@@ -12,17 +12,18 @@ import scala.scalajs.js
 class MiddleDataInJs extends MiddleData {
 
 
-  private var data: js.typedarray.DataView = _
-  private var index: Int = -1
+  private[this] var data: js.typedarray.DataView = _
+  private[this] var index: Int = -1
+
 
 
   override def reset(): Unit = {
     index = 0
   }
 
-  def init(array: js.typedarray.ArrayBuffer): Unit = {
-    val in = array
-    data = new js.typedarray.DataView(in)
+  def this(array: js.typedarray.ArrayBuffer) {
+    this()
+    data = new js.typedarray.DataView(array)
     index = 0
   }
 
@@ -30,12 +31,6 @@ class MiddleDataInJs extends MiddleData {
     val in = new js.typedarray.ArrayBuffer(size)
     data = new js.typedarray.DataView(in)
     index = 0
-  }
-
-  override def putString(s: String): Unit = {
-    val bytes = s.getBytes("utf-8")
-    putInt(bytes.length)
-    bytes.foreach { b => putByte(b) }
   }
 
   override def putByte(b: Byte): Unit = {
@@ -53,18 +48,6 @@ class MiddleDataInJs extends MiddleData {
     index += 4
   }
 
-  override def putMiddleData(d: MiddleData): Unit = {
-    throw new NotImplementedError()
-  }
-
-  override def getString(): String = {
-    val len = getInt()
-    val bytes = new Array[Byte](len)
-    for (i <- 0 until len) {
-      bytes(i) = getByte()
-    }
-    new String(bytes, "utf-8")
-  }
 
   override def getByte(): Byte = {
     val b = data.getInt8(index)
@@ -84,8 +67,7 @@ class MiddleDataInJs extends MiddleData {
     f
   }
 
-  override def getMiddleData(): MiddleData = {
-    throw new NotImplementedError()
+  override def result(): js.typedarray.ArrayBuffer = {
+    data.buffer.slice(0, index)
   }
-
 }

@@ -9,12 +9,12 @@ import java.nio.ByteBuffer
   */
 class MiddleDataInJvm extends MiddleData {
 
-  private var data: ByteBuffer = _
+  private[this] var data: ByteBuffer = _
   //  private var index = 0
 
-  def init(buffer: ByteBuffer): Unit = {
+  def this(buffer: ByteBuffer) {
+    this()
     data = buffer
-    data.reset()
   }
 
   override def init(size: Int): Unit = {
@@ -22,14 +22,7 @@ class MiddleDataInJvm extends MiddleData {
   }
 
   override def reset(): Unit = {
-    data.reset()
-  }
-
-  override def putString(s: String): Unit = {
-    val bytes = s.getBytes("utf-8")
-    val len = bytes.length
-    putInt(len)
-    data.put(bytes)
+    data.rewind()
   }
 
   override def putByte(b: Byte): Unit = data.put(b)
@@ -38,16 +31,6 @@ class MiddleDataInJvm extends MiddleData {
 
   override def putFloat(f: Float): Unit = data.putFloat(f)
 
-  override def putMiddleData(d: MiddleData): Unit = {
-    throw new NotImplementedError()
-  }
-
-  override def getString(): String = {
-    val len = getInt()
-    val bytes = new Array[Byte](len)
-    data.get(bytes)
-    new String(bytes, "utf-8")
-  }
 
   override def getByte(): Byte = data.get()
 
@@ -56,9 +39,17 @@ class MiddleDataInJvm extends MiddleData {
 
   override def getFloat(): Float = data.getFloat()
 
-  override def getMiddleData(): MiddleData = {
-    throw new NotImplementedError()
-  }
 
-  def result: Array[Byte] = data.array()
+  override def result(): Array[Byte] = {
+    val length = data.position()
+    println(s"result length: $length")
+    data.flip()
+    val rst = new Array[Byte](data.limit())
+    var c = 0
+    while (data.hasRemaining) {
+      rst(c) = data.get()
+      c += 1
+    }
+    rst
+  }
 }

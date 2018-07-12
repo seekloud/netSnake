@@ -1,20 +1,16 @@
 package com.neo.sk.hiStream.front.chat
 
-import java.nio.ByteBuffer
-
 import com.neo.sk.hiStream.chat.Protocol.TestMessage
-import com.neo.sk.hiStream.front.snake.NetGameHolder.getWebSocketUri
 import com.neo.sk.hiStream.front.utils.Component
-import org.scalajs.dom
-
-import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 import mhtml._
+import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.{Input, TextArea}
 import org.scalajs.dom.raw._
 
 import scala.scalajs.js
-import scala.scalajs.js.typedarray.{ArrayBuffer, DataView, Int8Array, Uint8Array}
+import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
+import scala.scalajs.js.typedarray.{ArrayBuffer, Int8Array, Uint8Array}
 import scala.xml.Elem
 
 /**
@@ -104,8 +100,7 @@ object MainPage extends Component {
             println(s"[$i] byte: [${b.get(i) }]")
           }
 
-          val middleDataInJs = new MiddleDataInJs()
-          middleDataInJs.init(buf)
+          val middleDataInJs = new MiddleDataInJs(buf)
 
           val data = TestMessage.decode(middleDataInJs)
           val msg = data.data
@@ -176,8 +171,23 @@ object MainPage extends Component {
           val blobMsg = new Blob(js.Array(), BlobPropertyBag("application/octet-stream"))
           ws.send(blobMsg)
         }*/
-    import js.JSConverters._
     wsConnection.foreach { ws =>
+
+      val id = (System.currentTimeMillis() / 10000).toInt
+      val ls =  scala.collection.immutable.Range(0, id % 10 + 2, 1).map( _ + 0.1f).toArray
+
+      val testMessage = TestMessage(id, msg, ls)
+      val middleDataInJs = new MiddleDataInJs()
+      TestMessage.encode(testMessage, middleDataInJs)
+      val ab = middleDataInJs.result()
+
+      println(s"send test message, id=${testMessage.id}")
+      println(s"send test message, data=${testMessage.data}")
+      println(s"send test message, ls=${testMessage.ls.mkString(",")}")
+
+
+/*
+    import js.JSConverters._
       val data = msg.getBytes("utf-8")
       val len = data.size.toShort
       val ab = new js.typedarray.ArrayBuffer(len + 1)
@@ -186,6 +196,7 @@ object MainPage extends Component {
       println(s"set len to: $len")
       println(s"set all data at once.")
       bs.set(data.toJSArray, 1)
+*/
 
       //          for (i <- 0 until len) {
       //            println(s"set $i to ${data(i)}")

@@ -66,8 +66,18 @@ trait ChatService {
           msg
         case BinaryMessage.Strict(bMsg) =>
 
+          val buffer = bMsg.asByteBuffer
 
+          val middleData = new MiddleDataInJvm(buffer)
+          val testMessage = TestMessage.decode(middleData)
 
+          println(s"test msg decode, id=${testMessage.id}")
+          println(s"test msg decode, data=${testMessage.data}")
+          println(s"test msg decode, ls=${testMessage.ls.mkString(",")}")
+
+          val msg = testMessage.data
+
+          /*
           val buffer = bMsg.asByteBuffer
           val len = buffer.get().toShort
           val bytes = new Array[Byte](len)
@@ -76,8 +86,7 @@ trait ChatService {
             bytes(i) = buffer.get()
             println(s"get byte($i): ${bytes(i)}")
           }
-
-          val msg = new String(bytes, "utf-8")
+          val msg = new String(bytes, "utf-8")*/
 
           //println(s"got BinaryMessage $msg, len=${msg.length} size=${bMsg.toList.length}")
 
@@ -104,7 +113,7 @@ trait ChatService {
     val msg = TestMessage(id, str, ls)
     val middleData = new MiddleDataInJvm()
     TestMessage.encode(msg, middleData)
-    val r = middleData.result
+    val r = middleData.result()
     println(s"send msg: $msg")
     println(s"send bytes: ${r.mkString(",")}")
     r

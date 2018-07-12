@@ -42,32 +42,3 @@ object Protocol {
 trait Msg
 
 
-trait MiddleData {
-
-  def init(size: Int): Unit
-
-  def reset(): Unit
-
-
-  def putString(s: String): Unit
-
-  def putByte(b: Byte): Unit
-
-  def putInt(i: Int): Unit
-
-  def putFloat(f: Float): Unit
-
-  def putMiddleData(d: MiddleData): Unit
-
-  def getString(): String
-
-  def getByte(): Byte
-
-  def getInt(): Int
-
-  def getFloat(): Float
-
-  def getMiddleData(): MiddleData
-
-}
-
