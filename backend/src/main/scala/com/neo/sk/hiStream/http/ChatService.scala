@@ -12,7 +12,7 @@ import akka.http.scaladsl.server.Route
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.stream.{ActorAttributes, Materializer, Supervision}
 import akka.util.{ByteString, Timeout}
-import com.neo.sk.hiStream.chat.{ChatRoom, MiddleDataInJvm}
+import com.neo.sk.hiStream.chat.{ChatRoom, MiddleBufferInJvm}
 import com.neo.sk.hiStream.chat.Protocol.TestMessage
 import org.slf4j.LoggerFactory
 
@@ -68,7 +68,7 @@ trait ChatService {
 
           val buffer = bMsg.asByteBuffer
 
-          val middleData = new MiddleDataInJvm(buffer)
+          val middleData = new MiddleBufferInJvm(buffer)
           val testMessage = TestMessage.decode(middleData)
 
           println(s"test msg decode, id=${testMessage.id}")
@@ -111,7 +111,7 @@ trait ChatService {
     println(s"id: $id")
     val ls = new Range(0, id % 5, 1).toArray.map( _ + 0.1f)
     val msg = TestMessage(id, str, ls)
-    val middleData = new MiddleDataInJvm()
+    val middleData = new MiddleBufferInJvm(256)
     TestMessage.encode(msg, middleData)
     val r = middleData.result()
     println(s"send msg: $msg")

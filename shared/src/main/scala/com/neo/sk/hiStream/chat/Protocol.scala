@@ -12,27 +12,18 @@ object Protocol {
 
 
   object TestMessage {
-    def decode(data: MiddleData): TestMessage = {
+    def decode(data: MiddleBuffer): TestMessage = {
       val id = data.getInt()
-      println(s"TestMessage id=$id")
       val d = data.getString()
-      println(s"TestMessage data=$d")
-      val len = data.getInt()
-      println(s"TestMessage len=$len")
-      val ls = new Array[Float](len)
-      for(i <- 0 until len){
-        ls(i) = data.getFloat()
-      }
+      val ls = data.getFloatArray()
       println(s"TestMessage ls=${ls.mkString(",")}")
       TestMessage(id, d, ls)
     }
 
-    def encode(target: TestMessage, container: MiddleData): Unit = {
-      container.init(64)
+    def encode(target: TestMessage, container: MiddleBuffer): Unit = {
       container.putInt(target.id)
       container.putString(target.data)
-      container.putInt(target.ls.length)
-      target.ls.foreach(container.putFloat)
+      container.putFloatArray(target.ls)
     }
   }
 

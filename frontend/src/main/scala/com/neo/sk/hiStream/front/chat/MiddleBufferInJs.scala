@@ -1,6 +1,6 @@
 package com.neo.sk.hiStream.front.chat
 
-import com.neo.sk.hiStream.chat.MiddleData
+import com.neo.sk.hiStream.chat.MiddleBuffer
 
 import scala.scalajs.js
 
@@ -9,15 +9,14 @@ import scala.scalajs.js
   * Date: 7/12/2018
   * Time: 11:02 AM
   */
-class MiddleDataInJs extends MiddleData {
+class MiddleBufferInJs private () extends MiddleBuffer {
 
 
   private[this] var data: js.typedarray.DataView = _
   private[this] var index: Int = -1
 
 
-
-  override def reset(): Unit = {
+  override def clear(): Unit = {
     index = 0
   }
 
@@ -27,7 +26,8 @@ class MiddleDataInJs extends MiddleData {
     index = 0
   }
 
-  override def init(size: Int): Unit = {
+  def this(size: Int) {
+    this()
     val in = new js.typedarray.ArrayBuffer(size)
     data = new js.typedarray.DataView(in)
     index = 0

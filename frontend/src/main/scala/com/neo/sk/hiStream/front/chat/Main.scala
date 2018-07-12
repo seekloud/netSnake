@@ -100,7 +100,7 @@ object MainPage extends Component {
             println(s"[$i] byte: [${b.get(i) }]")
           }
 
-          val middleDataInJs = new MiddleDataInJs(buf)
+          val middleDataInJs = new MiddleBufferInJs(buf)
 
           val data = TestMessage.decode(middleDataInJs)
           val msg = data.data
@@ -177,7 +177,7 @@ object MainPage extends Component {
       val ls =  scala.collection.immutable.Range(0, id % 10 + 2, 1).map( _ + 0.1f).toArray
 
       val testMessage = TestMessage(id, msg, ls)
-      val middleDataInJs = new MiddleDataInJs()
+      val middleDataInJs = new MiddleBufferInJs(256)
       TestMessage.encode(testMessage, middleDataInJs)
       val ab = middleDataInJs.result()
 

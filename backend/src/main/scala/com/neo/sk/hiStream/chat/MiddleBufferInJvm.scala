@@ -7,7 +7,7 @@ import java.nio.ByteBuffer
   * Date: 7/12/2018
   * Time: 11:23 AM
   */
-class MiddleDataInJvm extends MiddleData {
+class MiddleBufferInJvm private ()  extends MiddleBuffer {
 
   private[this] var data: ByteBuffer = _
   //  private var index = 0
@@ -17,12 +17,13 @@ class MiddleDataInJvm extends MiddleData {
     data = buffer
   }
 
-  override def init(size: Int): Unit = {
+  def this(size: Int) = {
+    this()
     data = ByteBuffer.allocate(size)
   }
 
-  override def reset(): Unit = {
-    data.rewind()
+  override def clear(): Unit = {
+    data.clear()
   }
 
   override def putByte(b: Byte): Unit = data.put(b)
@@ -30,7 +31,6 @@ class MiddleDataInJvm extends MiddleData {
   override def putInt(i: Int): Unit = data.putInt(i)
 
   override def putFloat(f: Float): Unit = data.putFloat(f)
-
 
   override def getByte(): Byte = data.get()
 
