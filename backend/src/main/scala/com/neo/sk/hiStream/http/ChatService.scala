@@ -83,12 +83,13 @@ trait ChatService {
           */
 
 
-          val msg = bytesDecode[Msg](buffer) match {
-            case Right(v) => v
-            case Left(e) =>
-              println(s"decode error: ${e.message}")
-              TextMsg(-1, "decode error", 9.1f)
-          }
+          val msg =
+            bytesDecode[Msg](buffer) match {
+              case Right(v) => v
+              case Left(e) =>
+                println(s"decode error: ${e.message}")
+                TextMsg(-1, "decode error", 9.1f)
+            }
 
 
           /*          val msg = DecoderWithFailure.Decoder[Msg].decode(buffer) match {

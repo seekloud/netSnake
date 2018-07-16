@@ -1,16 +1,15 @@
 package com.neo.sk.hiStream.front.chat
 
 import com.neo.sk.frontUtils.{Component, MiddleBufferInJs}
-import com.neo.sk.hiStream.chat.Protocol.{Msg, MultiTextMsg, TestMessage, TextMsg}
+import com.neo.sk.hiStream.chat.Protocol.{Msg, MultiTextMsg, TextMsg}
 import mhtml._
 import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
 import org.scalajs.dom.html.{Input, TextArea}
 import org.scalajs.dom.raw._
 
-import scala.scalajs.js
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
-import scala.scalajs.js.typedarray.{ArrayBuffer, Int8Array, Uint8Array}
+import scala.scalajs.js.typedarray.ArrayBuffer
 import scala.xml.Elem
 
 /**
@@ -26,13 +25,10 @@ object Main {
     show()
     println("hello world, i am a chat room.")
   }
-
-
   def show(): Unit = {
     val page = MainPage.render
     mount(dom.document.body, page)
   }
-
 }
 
 object MainPage extends Component {
@@ -88,14 +84,11 @@ object MainPage extends Component {
       case blobMsg: Blob =>
         println(s"got blob msg: $blobMsg")
 
-
         val fr = new FileReader()
         fr.readAsArrayBuffer(blobMsg)
         fr.onloadend = { _: Event =>
           val buf = fr.result.asInstanceOf[ArrayBuffer]
-
           println(s"load length: ${buf.byteLength}")
-
           /*
                     val b = new Int8Array(buf)
                     println(s"b length: ${b.length}")
@@ -104,7 +97,6 @@ object MainPage extends Component {
                       println(s"[$i] byte: [${b.get(i)}]")
                     }
           */
-
           val middleDataInJs = new MiddleBufferInJs(buf)
 
           bytesDecode[Msg](middleDataInJs) match {
@@ -221,7 +213,7 @@ object MainPage extends Component {
       //val msg = TextMsg(id, input, id.toFloat / 1000)
 
       msg.fillMiddleBuffer(sendBuffer)
-      val ab = sendBuffer.result()
+      val ab: ArrayBuffer = sendBuffer.result()
 
       println(s"send msg: $msg")
 
