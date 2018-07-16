@@ -1,23 +1,22 @@
+# byte communication implement.
 
-## byte communication implement.
-
-#### MiddleBuffer
+## MiddleBuffer
 1. `trait MiddleBuffer`是用于进行二进制转换的中间数据数据结构; 
 2. `MiddleBuffer`提供了方便的`putXXX()`方法写入方法, 使我们可以将需要传输的对象, 保存到`MiddleBuffer`中; 
 3. 它的具体实现提供了`result()`方法, 转换为方便传输的二进制形式, 用于传输; 
-   * 在jvm平台上是`MiddleBufferInJvm`, 转换为`array[Byte]`数组; 
+   * 在jvm平台上是`MiddleBufferInJvm`, 转换为`Array[Byte]`数组; 
    * 在js平台上是`MiddleBufferInJs`, 转换为`ArrayBuffer`数组; 
 4. 同时, 完成传输后, 你也可以通过二进制数据方便的构造`MiddleBuffer`的具体实现; 
 5. 最后`MiddleBuffer`提供了`getXXX()`方法来获取数据; 
+6. 以上内容，在实际使用时，很多都不需要关注;
 
-
-#### byteObject
+## byteObject
 1. `byteObject`包提供了三个东西：`ByteEncoder`,`ByteDecoder`和`ByteObject`
 2. `ByteEncoder`能够分析对象结构**自动的**将对象序列化到`MiddleBuffer`中;
 3. 类似的, `ByteDecoder`能够自动的将`MiddlerBuffer`中的二进制数据解析为指定对象;
 
 
-#### Example
+## Example
 说了这么多, 其实使用起来非常非常简单, 假设消息定义如下：
  ```
    sealed trait Msg
@@ -38,7 +37,7 @@
    import com.neo.sk.utils.byteObject.ByteObject._
  ```
 
-##### In Jvm
+### In Jvm
 * encode  
   ```
   val sendBuffer = new MiddleBufferInJvm(2048)
@@ -61,7 +60,7 @@
   ```
 
 
-##### In Js
+### In Js
 * encode  
   ```
   val sendBuffer = new MiddleBufferInJs(2048)
@@ -88,14 +87,3 @@
     }
   }
   ```
-
-
-
-   
-   
-
-
-
-
-
-
