@@ -13,6 +13,7 @@ import akka.util.{ByteString, Timeout}
 import com.neo.sk.hiStream.chat.ChatRoom
 import com.neo.sk.hiStream.chat.Protocol.{Msg, TestMessage, TextMsg}
 import com.neo.sk.utils.MiddleBufferInJvm
+import com.neo.sk.utils.byteObject.decoder.DecoderWithFailure
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContextExecutor
@@ -65,10 +66,10 @@ trait ChatService {
           TextMsg(-1, msg, 100.1f)
         case BinaryMessage.Strict(bMsg) =>
 
-//
-//          val arr = bMsg.asByteBuffer
-//          println(s"arr length: ${arr.length}")
-//          println(s"arr: ${arr.mkString(",")}")
+          //
+          //          val arr = bMsg.asByteBuffer
+          //          println(s"arr length: ${arr.length}")
+          //          println(s"arr: ${arr.mkString(",")}")
 
 
           val buffer = new MiddleBufferInJvm(bMsg.asByteBuffer)
@@ -81,7 +82,16 @@ trait ChatService {
                     println(s"test msg decode, ls=${testMessage.ls.mkString(",")}")
                     val msg = testMessage.data
           */
-          val msg = bytesDecode[Msg](buffer)
+
+
+
+          //val msg = bytesDecode[Msg](buffer)
+          val msg = DecoderWithFailure.Decoder[Msg].decode(buffer) match {
+            case Right(v) => v
+            case Left(e) =>
+              println(s"decode error: ${e.message}")
+              TextMsg(-1, "decode error", 9.1f)
+          }
 
           /*
           val buffer = bMsg.asByteBuffer
@@ -108,9 +118,10 @@ trait ChatService {
       .map {
       //msg => BinaryMessage.Strict(ByteString(str2byteBuffer(msg))) // ... pack outgoing messages into WS JSON messages ...
 
-      msg => BinaryMessage.Strict(ByteString(
-        msg.fillMiddleBuffer(sendBuffer).result()
-      )) // ... pack outgoing messages into WS JSON messages ...
+      msg =>
+        BinaryMessage.Strict(ByteString(
+          msg.fillMiddleBuffer(sendBuffer).result()
+        )) // ... pack outgoing messages into WS JSON messages ...
 
 
     }.withAttributes(ActorAttributes.supervisionStrategy(decider)) // ... then log any processing errors on stdin

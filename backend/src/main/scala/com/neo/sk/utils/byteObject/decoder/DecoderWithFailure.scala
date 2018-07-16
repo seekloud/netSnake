@@ -1,4 +1,4 @@
-package com.neo.sk.utils.byteObject
+package com.neo.sk.utils.byteObject.decoder
 
 import com.neo.sk.hiStream.utils.MiddleBuffer
 import shapeless.labelled.{FieldType, field}
@@ -9,11 +9,10 @@ import scala.util.Try
 
 /**
   * User: Taoz
-  * Date: 7/15/2018
-  * Time: 8:44 AM
+  * Date: 7/16/2018
+  * Time: 1:32 PM
   */
-package object decoder {
-
+object DecoderWithFailure {
 
   sealed abstract class DecoderFailure(val message: String) {
     override def toString = s"DecoderFailure($message)"
@@ -30,17 +29,17 @@ package object decoder {
   }
 
 
-  trait BytesDecoder[A] {
+  trait Decoder[A] {
     def decode(buffer: MiddleBuffer): Either[DecoderFailure, A]
   }
 
-  object BytesDecoder {
+  object Decoder {
     //summoner
-    def apply[A](implicit dec: BytesDecoder[A]): BytesDecoder[A] = dec
+    def apply[A](implicit dec: Decoder[A]): Decoder[A] = dec
 
     //constructor
-    def instance[A](func: MiddleBuffer => Either[DecoderFailure, A]): BytesDecoder[A] = {
-      new BytesDecoder[A] {
+    def instance[A](func: MiddleBuffer => Either[DecoderFailure, A]): Decoder[A] = {
+      new Decoder[A] {
         override def decode(buffer: MiddleBuffer): Either[DecoderFailure, A] = {
           func(buffer)
         }
@@ -51,8 +50,8 @@ package object decoder {
     implicit def genericDecoder[A, R](
       implicit
       gen: LabelledGeneric.Aux[A, R],
-      dec: Lazy[BytesDecoder[R]]
-    ): BytesDecoder[A] = {
+      dec: Lazy[Decoder[R]]
+    ): Decoder[A] = {
       instance[A] { buffer =>
         for {
           r <- dec.value.decode(buffer).right
@@ -63,9 +62,9 @@ package object decoder {
     implicit def hListDecoder[K <: Symbol, H, T <: HList](
       implicit
       witness: Witness.Aux[K],
-      hDecoder: Lazy[BytesDecoder[H]],
-      tDecoder: BytesDecoder[T]
-    ): BytesDecoder[FieldType[K, H] :: T] = {
+      hDecoder: Lazy[Decoder[H]],
+      tDecoder: Decoder[T]
+    ): Decoder[FieldType[K, H] :: T] = {
       instance { buffer =>
         for {
           h <- hDecoder.value.decode(buffer).right
@@ -82,7 +81,7 @@ package object decoder {
     }
 
 
-    trait CoproductTypeBytesDecoder[A] extends BytesDecoder[A] {
+    trait CoproductTypeDecoder[A] extends Decoder[A] {
       def decodeCoproduct(buffer: MiddleBuffer, nameOption: Option[String]): Either[DecoderFailure, A]
 
       override def decode(buffer: MiddleBuffer): Either[DecoderFailure, A] = decodeCoproduct(buffer, None)
@@ -91,10 +90,10 @@ package object decoder {
     implicit def coproductDecoder[K <: Symbol, H, T <: Coproduct](
       implicit
       witness: Witness.Aux[K],
-      hDecoder: Lazy[BytesDecoder[H]],
-      tDecoder: CoproductTypeBytesDecoder[T]
-    ): CoproductTypeBytesDecoder[FieldType[K, H] :+: T] = {
-      new CoproductTypeBytesDecoder[FieldType[K, H] :+: T] {
+      hDecoder: Lazy[Decoder[H]],
+      tDecoder: CoproductTypeDecoder[T]
+    ): CoproductTypeDecoder[FieldType[K, H] :+: T] = {
+      new CoproductTypeDecoder[FieldType[K, H] :+: T] {
         override def decodeCoproduct(
           buffer: MiddleBuffer,
           nameOption: Option[String]
@@ -126,7 +125,7 @@ package object decoder {
     }
 
     implicit val cNilInstance = {
-      new CoproductTypeBytesDecoder[CNil] {
+      new CoproductTypeDecoder[CNil] {
         override def decodeCoproduct(
           buffer: MiddleBuffer,
           nameOption: Option[String]
@@ -150,7 +149,7 @@ package object decoder {
 
 
     private def readToArray[A](
-      buffer: MiddleBuffer, len: Int, dec: BytesDecoder[A]
+      buffer: MiddleBuffer, len: Int, dec: Decoder[A]
     )(implicit m: ClassTag[A]): Either[DecoderFailure, Array[A]] = {
       wrapTry {
         val arr = new Array[A](len)
@@ -163,7 +162,7 @@ package object decoder {
       }
     }
 
-    implicit def seqDecoder[A](implicit dec: BytesDecoder[A], m: ClassTag[A]): BytesDecoder[Seq[A]] = {
+    implicit def seqDecoder[A](implicit dec: Decoder[A], m: ClassTag[A]): Decoder[Seq[A]] = {
       instance[Seq[A]] { buffer =>
         val len = buffer.getInt()
         readToArray(buffer, len, dec).right.map(_.toSeq)
@@ -171,7 +170,7 @@ package object decoder {
     }
 
 
-    implicit def listDecoder[A](implicit dec: BytesDecoder[A], m: ClassTag[A]): BytesDecoder[List[A]] = {
+    implicit def listDecoder[A](implicit dec: Decoder[A], m: ClassTag[A]): Decoder[List[A]] = {
       instance[List[A]] { buffer =>
         val len = buffer.getInt()
         readToArray(buffer, len, dec).right.map(_.toList)
@@ -179,14 +178,14 @@ package object decoder {
     }
 
 
-    implicit def arrayDecoder[A](implicit dec: BytesDecoder[A], m: ClassTag[A]): BytesDecoder[Array[A]] = {
+    implicit def arrayDecoder[A](implicit dec: Decoder[A], m: ClassTag[A]): Decoder[Array[A]] = {
       instance[Array[A]] { buffer =>
         val len = buffer.getInt()
         readToArray(buffer, len, dec)
       }
     }
 
-    implicit def optionDecoder[A](implicit dec: BytesDecoder[A]): BytesDecoder[Option[A]] = {
+    implicit def optionDecoder[A](implicit dec: Decoder[A]): Decoder[Option[A]] = {
       instance[Option[A]] { buffer =>
         val len = buffer.getInt()
         if (len == 1) {
@@ -199,11 +198,11 @@ package object decoder {
 
     implicit def mapDecoder[K, V](
       implicit
-      kDec: BytesDecoder[K],
-      vDec: BytesDecoder[V],
+      kDec: Decoder[K],
+      vDec: Decoder[V],
       c1: ClassTag[K],
       c2: ClassTag[V]
-    ): BytesDecoder[Map[K, V]] = {
+    ): Decoder[Map[K, V]] = {
       instance { buffer =>
         wrapTry {
           val len = buffer.getInt()
@@ -220,4 +219,5 @@ package object decoder {
       }
     }
   }
+
 }

@@ -213,6 +213,9 @@ object MainPage extends Component {
           TextMsg(id, input, id.toFloat / 1000)
         }
 
+      //test error msg.
+      //val msg = TextMsg(id, input, id.toFloat / 1000)
+
       msg.fillMiddleBuffer(sendBuffer)
       val ab = sendBuffer.result()
 
