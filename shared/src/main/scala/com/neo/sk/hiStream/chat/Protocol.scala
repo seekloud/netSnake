@@ -28,8 +28,8 @@ object Protocol {
     def decode(data: MiddleBuffer): TestMessage = {
       val id = data.getInt()
       val d = data.getString()
-      val ls = data.getFloatArray()
-      TestMessage(id, d, ls)
+//      val ls = data.getFloatArray()
+      TestMessage(id, d, Array())
     }
 
     def encode(target: TestMessage, container: MiddleBuffer): Unit = {
@@ -63,7 +63,8 @@ object Protocol {
       this()
       id = data.getInt()
       this.data = data.getString()
-      ls = data.getFloatArray()
+      //ls = data.getFloatArray()
+      ls = Array()
     }
   }
 

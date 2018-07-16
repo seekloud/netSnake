@@ -61,6 +61,7 @@ trait MiddleBuffer {
 
   def getFloat(): Float
 
+/*
   def getIntArray(): Array[Int] = getXArray(getInt)
 
   def getFloatArray(): Array[Float] = getXArray(getFloat)
@@ -77,6 +78,7 @@ trait MiddleBuffer {
     }
     ls
   }
+*/
 
 }
 

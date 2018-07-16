@@ -13,7 +13,6 @@ import akka.util.{ByteString, Timeout}
 import com.neo.sk.hiStream.chat.ChatRoom
 import com.neo.sk.hiStream.chat.Protocol.{Msg, TestMessage, TextMsg}
 import com.neo.sk.utils.MiddleBufferInJvm
-import com.neo.sk.utils.byteObject.decoder.DecoderWithFailureTmp
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContextExecutor
