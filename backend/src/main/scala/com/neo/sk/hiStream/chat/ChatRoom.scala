@@ -4,6 +4,7 @@ import akka.NotUsed
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Flow, Sink, Source}
+import com.neo.sk.hiStream.chat.Protocol.{Msg, MultiTextMsg, TextMsg}
 import com.neo.sk.hiStream.chat.RoomMaster.{JoinRoom, LeftRoom}
 import org.slf4j.LoggerFactory
 
@@ -17,7 +18,7 @@ import scala.language.postfixOps
   */
 trait ChatRoom {
 
-  def join(id: Int, name: String): Flow[String, String, Any]
+  def join(id: Int, name: String): Flow[Msg, Msg, Any]
 
 }
 
@@ -34,8 +35,8 @@ object ChatRoom {
   def playInSink(
     id: Int,
     name: String,
-    room: ActorRef): Sink[String, NotUsed] = {
-    Sink.actorRef[String](room, LeftRoom(id, name))
+    room: ActorRef): Sink[Msg, NotUsed] = {
+    Sink.actorRef[Msg](room, LeftRoom(id, name))
   }
 
   def create(system: ActorSystem)(implicit executor: ExecutionContext): ChatRoom = {
@@ -43,13 +44,13 @@ object ChatRoom {
     val room = system.actorOf(RoomMaster.props(), "roomMaster")
 
     new ChatRoom {
-      override def join(id: Int, name: String): Flow[String, String, Any] = {
+      override def join(id: Int, name: String): Flow[Msg, Msg, Any] = {
         val in =
-          Flow[String]
+          Flow[Msg]
             .map { s => s }
             .to(playInSink(id, name, room))
         val out =
-          Source.actorRef[String](3, OverflowStrategy.dropHead)
+          Source.actorRef[Msg](3, OverflowStrategy.dropHead)
             .mapMaterializedValue(outActor => room ! JoinRoom(id, name, outActor))
 
         Flow.fromSinkAndSource(in, out)
@@ -79,28 +80,52 @@ class RoomMaster extends Actor {
   import context.dispatcher
 
   val keepAlive =
-    context.system.scheduler.schedule(0 second, 3 second, self, "\u0001")
+    context.system.scheduler.schedule(0 second, 8 second, self, "\u0001")
+
 
   override def receive: Receive = {
     case "\u0001" =>
-      peer.foreach(_ ! "\u0001")
+      val m = TextMsg(123, s"heartbeat", 0.123f)
+      dispatch(m)
     case JoinRoom(id, name, userRef) =>
       log.info(s"$id joined room by [$name]")
       peer = Some(userRef)
-      dispatch(s"welcome [$name]")
-    case str: String =>
-      log.info(s"got msg: $str")
-      dispatch(s"i got your msg[$str]")
+      val m = TextMsg(0, s"welcome [$name]", 0.1f)
+      dispatch(m)
+    case msg: Msg => msg match {
+      case m@TextMsg(id, data, value) =>
+        log.info(s"got: $m")
+        val rep =
+          if (data.startsWith("x3")) {
+            val ls = (1 to 3).map { i =>
+              TextMsg(id, s"i got your msg[$data]", i*0.1f)
+            }
+            MultiTextMsg(id, None, ls.toList)
+          } else {
+            TextMsg(id, s"i got your msg[$data]", value + 0.1f)
+          }
+        dispatch(rep)
+      case m@MultiTextMsg(id, d, ls) =>
+        log.info(s"got: $m")
+        var c = 0.0f
+        ls.foreach { r =>
+          val rep = TextMsg(id, s"multiMsg part msg[${r.data}]", c)
+          c += 0.1f
+          dispatch(rep)
+        }
+    }
+
     case LeftRoom(_, name) =>
       log.info(s"$name left.")
       peer = None
     case x =>
       log.info(s"got unknown msg: $x")
-      dispatch("I can not understand.")
+      val rep = TextMsg(9999, s"i got your msg[${x.toString}]", 0.999f)
+      dispatch(rep)
   }
 
 
-  private def dispatch(msg: String): Unit = {
+  private def dispatch(msg: Msg): Unit = {
     peer.foreach(_ ! msg)
   }
 }

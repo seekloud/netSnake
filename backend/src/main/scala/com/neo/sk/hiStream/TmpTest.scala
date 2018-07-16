@@ -14,20 +14,24 @@ object TmpTest {
   import io.circe.parser._
   import io.circe.generic.auto._
   import io.circe.syntax._
+
+  sealed trait TmpMsg
+  case class Action(name: String, value: Float) extends TmpMsg
+  case class MultiAction(name: String, a1: Action, a2: Action) extends TmpMsg
+
   def main(args: Array[String]): Unit = {
 
 
 
     println("hello, world.")
 
-    val msg: Protocol.GameMessage = Protocol.Id(1l)
+    //val msg: Msg = Action("a1", 1.1f)
+    val msg: TmpMsg = MultiAction("t1", Action("a1", 1.1f), Action("a2", 2.1f))
     val jsonStr = msg.asJson.noSpaces
-    println("jsonStr:", jsonStr)
+    println("jsonStr:" + jsonStr)
 
-    val m1 = decode[Protocol.GameMessage](jsonStr)
+    val m1 = decode[TmpMsg](jsonStr)
     println("m1:", m1)
-
-
 
 
   }

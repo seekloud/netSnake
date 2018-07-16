@@ -1,6 +1,6 @@
-package com.neo.sk.hiStream.front.chat
+package com.neo.sk.frontUtils
 
-import com.neo.sk.hiStream.chat.MiddleBuffer
+import com.neo.sk.hiStream.utils.MiddleBuffer
 
 import scala.scalajs.js
 
@@ -33,19 +33,22 @@ class MiddleBufferInJs private () extends MiddleBuffer {
     index = 0
   }
 
-  override def putByte(b: Byte): Unit = {
+  override def putByte(b: Byte): MiddleBufferInJs = {
     data.setInt8(index, b)
     index += 1
+    this
   }
 
-  override def putInt(i: Int): Unit = {
+  override def putInt(i: Int): MiddleBufferInJs = {
     data.setInt32(index, i, littleEndian = false)
     index += 4
+    this
   }
 
-  override def putFloat(f: Float): Unit = {
+  override def putFloat(f: Float): MiddleBufferInJs = {
     data.setFloat32(index, f, littleEndian = false)
     index += 4
+    this
   }
 
 

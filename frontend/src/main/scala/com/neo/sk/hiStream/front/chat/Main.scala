@@ -1,7 +1,7 @@
 package com.neo.sk.hiStream.front.chat
 
-import com.neo.sk.hiStream.chat.Protocol.TestMessage
-import com.neo.sk.hiStream.front.utils.Component
+import com.neo.sk.frontUtils.{Component, MiddleBufferInJs}
+import com.neo.sk.hiStream.chat.Protocol.{Msg, MultiTextMsg, TestMessage, TextMsg}
 import mhtml._
 import org.scalajs.dom
 import org.scalajs.dom.ext.KeyCode
@@ -36,6 +36,9 @@ object Main {
 }
 
 object MainPage extends Component {
+
+  import com.neo.sk.frontUtils.byteObject.ByteObject._
+
 
   private var username = ""
   private var messageInput: Option[Input] = None
@@ -93,27 +96,50 @@ object MainPage extends Component {
 
           println(s"load length: ${buf.byteLength}")
 
-          val b = new Int8Array(buf)
-          println(s"b length: ${b.length}")
-          for (i <- 0 until 10){
-//            val s = Integer.toHexString(b.get(i) & 0xFF)
-            println(s"[$i] byte: [${b.get(i) }]")
-          }
+          /*
+                    val b = new Int8Array(buf)
+                    println(s"b length: ${b.length}")
+                    for (i <- 0 until 10) {
+                      //            val s = Integer.toHexString(b.get(i) & 0xFF)
+                      println(s"[$i] byte: [${b.get(i)}]")
+                    }
+          */
 
           val middleDataInJs = new MiddleBufferInJs(buf)
 
-          val data = TestMessage.decode(middleDataInJs)
-          val msg = data.data
-
-          println(s"msg: ${data.id}")
-          println(s"msg: ${data.data}")
-          println(s"msg: ${data.ls.mkString(",")}")
-          if (msg != "\u0001") {
-            messageBoard.update { current =>
-              current + "\n" +
-              s"$username: " + msg
-            }
+          bytesDecode[Msg](middleDataInJs) match {
+            case m@TextMsg(id, data, value) =>
+              println(s"got m=$m")
+              messageBoard.update { current =>
+                current + "\n" +
+                s"$username: " + data
+              }
+            case m@MultiTextMsg(id, d, ls) =>
+              println(s"got m=$m")
+              val msg = ls.map { r =>
+                s"$username: m[" + r.data + "]"
+              }.mkString("\n")
+              messageBoard.update { current =>
+                current + "\n" + msg
+              }
           }
+
+
+          /*          val data = TestMessage.decode(middleDataInJs)
+                    val msg = data.data
+
+                    println(s"msg: ${data.id}")
+                    println(s"msg: ${data.data}")
+                    println(s"msg: ${data.ls.mkString(",")}")
+                    if (msg != "\u0001") {
+                      messageBoard.update { current =>
+                        current + "\n" +
+                        s"$username: " + msg
+                      }
+                    }
+                    */
+
+
           /*
           val bs = new Uint8Array(buf)
           val len = bs.get(0)
@@ -131,8 +157,6 @@ object MainPage extends Component {
               s"$username: " + msg
             }
           }*/
-
-
 
 
         }
@@ -157,8 +181,11 @@ object MainPage extends Component {
   }
 
 
+  val sendBuffer = new MiddleBufferInJs(2048)
+
+
   private def sendMessage(): Unit = {
-    val msg = messageInput.map(_.value).getOrElse("NULL")
+    val input = messageInput.map(_.value).getOrElse("NULL")
 
     //    wsConnection.foreach(_.send(msg))
 
@@ -174,29 +201,51 @@ object MainPage extends Component {
     wsConnection.foreach { ws =>
 
       val id = (System.currentTimeMillis() / 10000).toInt
+      val ls = scala.collection.immutable.Range(0, id % 10 + 2, 1).map(_ + 0.1f).toArray
+
+      val msg: Msg =
+        if (input.startsWith("3x")) {
+          val ls = (1 to 3).map { i =>
+            TextMsg(id, input, 0.1f * i)
+          }
+          MultiTextMsg(id, Some(true), ls.toList)
+        } else {
+          TextMsg(id, input, id.toFloat / 1000)
+        }
+
+      msg.fillMiddleBuffer(sendBuffer)
+      val ab = sendBuffer.result()
+
+      println(s"send msg: $msg")
+
+
+      /*
+      val id = (System.currentTimeMillis() / 10000).toInt
       val ls =  scala.collection.immutable.Range(0, id % 10 + 2, 1).map( _ + 0.1f).toArray
 
       val testMessage = TestMessage(id, msg, ls)
-      val middleDataInJs = new MiddleBufferInJs(256)
-      TestMessage.encode(testMessage, middleDataInJs)
-      val ab = middleDataInJs.result()
+      sendBuffer.clear()
+      testMessage.encode(sendBuffer)
+      val ab = sendBuffer.result()
 
       println(s"send test message, id=${testMessage.id}")
       println(s"send test message, data=${testMessage.data}")
       println(s"send test message, ls=${testMessage.ls.mkString(",")}")
 
 
-/*
-    import js.JSConverters._
-      val data = msg.getBytes("utf-8")
-      val len = data.size.toShort
-      val ab = new js.typedarray.ArrayBuffer(len + 1)
-      val bs = new Uint8Array(ab)
-      bs.set(0, len)
-      println(s"set len to: $len")
-      println(s"set all data at once.")
-      bs.set(data.toJSArray, 1)
-*/
+      * */
+
+      /*
+          import js.JSConverters._
+            val data = msg.getBytes("utf-8")
+            val len = data.size.toShort
+            val ab = new js.typedarray.ArrayBuffer(len + 1)
+            val bs = new Uint8Array(ab)
+            bs.set(0, len)
+            println(s"set len to: $len")
+            println(s"set all data at once.")
+            bs.set(data.toJSArray, 1)
+      */
 
       //          for (i <- 0 until len) {
       //            println(s"set $i to ${data(i)}")

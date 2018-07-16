@@ -1,4 +1,4 @@
-package com.neo.sk.hiStream.front.utils
+package com.neo.sk.frontUtils
 
 import scala.language.implicitConversions
 import scala.xml.Elem

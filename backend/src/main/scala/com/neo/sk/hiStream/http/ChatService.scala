@@ -1,19 +1,18 @@
 package com.neo.sk.hiStream.http
 
-import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicInteger
 
 import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
-import akka.http.scaladsl.server.Directives.{getFromResource, handleWebSocketMessages, parameter, path, pathEndOrSingleSlash, pathPrefix}
+import akka.http.scaladsl.server.Directives.{getFromResource, handleWebSocketMessages, parameter, path, pathEndOrSingleSlash, pathPrefix, _}
 import akka.http.scaladsl.server.Route
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import akka.stream.{ActorAttributes, Materializer, Supervision}
 import akka.util.{ByteString, Timeout}
-import com.neo.sk.hiStream.chat.{ChatRoom, MiddleBufferInJvm}
-import com.neo.sk.hiStream.chat.Protocol.TestMessage
+import com.neo.sk.hiStream.chat.ChatRoom
+import com.neo.sk.hiStream.chat.Protocol.{Msg, TestMessage, TextMsg}
+import com.neo.sk.utils.MiddleBufferInJvm
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContextExecutor
@@ -24,9 +23,7 @@ import scala.concurrent.ExecutionContextExecutor
   * Time: 12:25 PM
   */
 trait ChatService {
-
-
-  import io.circe.syntax._
+  import com.neo.sk.utils.byteObject.ByteObject._
 
   implicit val system: ActorSystem
 
@@ -57,25 +54,34 @@ trait ChatService {
     }
   }
 
+  val sendBuffer = new MiddleBufferInJvm(2048)
+
 
   def webSocketChatFlow(nickname: String): Flow[Message, Message, Any] =
     Flow[Message]
       .collect {
         case TextMessage.Strict(msg) =>
           log.info(s"msg from webSocket: $msg")
-          msg
+          TextMsg(-1, msg, 100.1f)
         case BinaryMessage.Strict(bMsg) =>
 
-          val buffer = bMsg.asByteBuffer
+//
+//          val arr = bMsg.asByteBuffer
+//          println(s"arr length: ${arr.length}")
+//          println(s"arr: ${arr.mkString(",")}")
 
-          val middleData = new MiddleBufferInJvm(buffer)
-          val testMessage = TestMessage.decode(middleData)
 
-          println(s"test msg decode, id=${testMessage.id}")
-          println(s"test msg decode, data=${testMessage.data}")
-          println(s"test msg decode, ls=${testMessage.ls.mkString(",")}")
+          val buffer = new MiddleBufferInJvm(bMsg.asByteBuffer)
 
-          val msg = testMessage.data
+          /*
+                    val testMessage = TestMessage.decode(middleData)
+
+                    println(s"test msg decode, id=${testMessage.id}")
+                    println(s"test msg decode, data=${testMessage.data}")
+                    println(s"test msg decode, ls=${testMessage.ls.mkString(",")}")
+                    val msg = testMessage.data
+          */
+          val msg = bytesDecode[Msg](buffer)
 
           /*
           val buffer = bMsg.asByteBuffer
@@ -99,7 +105,14 @@ trait ChatService {
       }
       .via(chatRoom.join(idGenerator.getAndIncrement(), nickname)) // ... and route them through the chatFlow ...
       //.map { msg => TextMessage.Strict(msg) // ... pack outgoing messages into WS JSON messages ...
-      .map { msg => BinaryMessage.Strict(ByteString(str2byteBuffer(msg))) // ... pack outgoing messages into WS JSON messages ...
+      .map {
+      //msg => BinaryMessage.Strict(ByteString(str2byteBuffer(msg))) // ... pack outgoing messages into WS JSON messages ...
+
+      msg => BinaryMessage.Strict(ByteString(
+        msg.fillMiddleBuffer(sendBuffer).result()
+      )) // ... pack outgoing messages into WS JSON messages ...
+
+
     }.withAttributes(ActorAttributes.supervisionStrategy(decider)) // ... then log any processing errors on stdin
 
 
@@ -109,11 +122,11 @@ trait ChatService {
   private def str2byteBuffer(str: String) = {
     val id = (System.currentTimeMillis() / 10000).toInt
     println(s"id: $id")
-    val ls = new Range(0, id % 5, 1).toArray.map( _ + 0.1f)
+    val ls = new Range(0, id % 5, 1).toArray.map(_ + 0.1f)
     val msg = TestMessage(id, str, ls)
-    val middleData = new MiddleBufferInJvm(256)
-    TestMessage.encode(msg, middleData)
-    val r = middleData.result()
+    sendBuffer.clear()
+    msg.encode(sendBuffer)
+    val r = sendBuffer.result()
     println(s"send msg: $msg")
     println(s"send bytes: ${r.mkString(",")}")
     r
@@ -126,7 +139,7 @@ trait ChatService {
     val len = data.length
     val array = new Array[Byte](len + 1)
     array(0) = len.toByte
-    for(i <- 0 until len) {
+    for (i <- 0 until len) {
       array(i + 1) = data(i)
     }
     println(s"str2bytes: str=[$str] to [${array.mkString(",")}]")
