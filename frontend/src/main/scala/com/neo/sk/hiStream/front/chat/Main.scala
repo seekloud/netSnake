@@ -108,20 +108,24 @@ object MainPage extends Component {
           val middleDataInJs = new MiddleBufferInJs(buf)
 
           bytesDecode[Msg](middleDataInJs) match {
-            case m@TextMsg(id, data, value) =>
-              println(s"got m=$m")
-              messageBoard.update { current =>
-                current + "\n" +
-                s"$username: " + data
-              }
-            case m@MultiTextMsg(id, d, ls) =>
-              println(s"got m=$m")
-              val msg = ls.map { r =>
-                s"$username: m[" + r.data + "]"
-              }.mkString("\n")
-              messageBoard.update { current =>
-                current + "\n" + msg
-              }
+            case Right(data) => data match {
+              case m@TextMsg(id, data, value) =>
+                println(s"got m=$m")
+                messageBoard.update { current =>
+                  current + "\n" +
+                  s"$username: " + data
+                }
+              case m@MultiTextMsg(id, d, ls) =>
+                println(s"got m=$m")
+                val msg = ls.map { r =>
+                  s"$username: m[" + r.data + "]"
+                }.mkString("\n")
+                messageBoard.update { current =>
+                  current + "\n" + msg
+                }
+            }
+            case Left(error) =>
+              println(s"got error: ${error.message}")
           }
 
 

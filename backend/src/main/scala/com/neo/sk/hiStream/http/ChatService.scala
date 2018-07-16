@@ -13,7 +13,7 @@ import akka.util.{ByteString, Timeout}
 import com.neo.sk.hiStream.chat.ChatRoom
 import com.neo.sk.hiStream.chat.Protocol.{Msg, TestMessage, TextMsg}
 import com.neo.sk.utils.MiddleBufferInJvm
-import com.neo.sk.utils.byteObject.decoder.DecoderWithFailure
+import com.neo.sk.utils.byteObject.decoder.DecoderWithFailureTmp
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContextExecutor
@@ -84,14 +84,20 @@ trait ChatService {
           */
 
 
-
-          //val msg = bytesDecode[Msg](buffer)
-          val msg = DecoderWithFailure.Decoder[Msg].decode(buffer) match {
+          val msg = bytesDecode[Msg](buffer) match {
             case Right(v) => v
             case Left(e) =>
               println(s"decode error: ${e.message}")
               TextMsg(-1, "decode error", 9.1f)
           }
+
+
+          /*          val msg = DecoderWithFailure.Decoder[Msg].decode(buffer) match {
+                      case Right(v) => v
+                      case Left(e) =>
+                        println(s"decode error: ${e.message}")
+                        TextMsg(-1, "decode error", 9.1f)
+                    }*/
 
           /*
           val buffer = bMsg.asByteBuffer

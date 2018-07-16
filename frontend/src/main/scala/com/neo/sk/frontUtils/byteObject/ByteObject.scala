@@ -1,6 +1,6 @@
 package com.neo.sk.frontUtils.byteObject
 
-import com.neo.sk.frontUtils.byteObject.decoder.BytesDecoder
+import com.neo.sk.frontUtils.byteObject.decoder.{BytesDecoder, DecoderFailure}
 import com.neo.sk.frontUtils.byteObject.encoder.BytesEncoder
 import com.neo.sk.hiStream.utils.MiddleBuffer
 
@@ -22,7 +22,7 @@ object ByteObject {
     }
   }
 
-  def bytesDecode[A](input: MiddleBuffer)(implicit decoder: BytesDecoder[A]): A = {
+  def bytesDecode[A](input: MiddleBuffer)(implicit decoder: BytesDecoder[A]): Either[DecoderFailure, A] = {
     decoder.decode(input)
   }
 

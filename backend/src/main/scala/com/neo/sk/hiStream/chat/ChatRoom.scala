@@ -52,7 +52,6 @@ object ChatRoom {
         val out =
           Source.actorRef[Msg](3, OverflowStrategy.dropHead)
             .mapMaterializedValue(outActor => room ! JoinRoom(id, name, outActor))
-
         Flow.fromSinkAndSource(in, out)
       }
     }
@@ -126,6 +125,7 @@ class RoomMaster extends Actor {
 
 
   private def dispatch(msg: Msg): Unit = {
+    log.debug(s"send msg: $msg")
     peer.foreach(_ ! msg)
   }
 }

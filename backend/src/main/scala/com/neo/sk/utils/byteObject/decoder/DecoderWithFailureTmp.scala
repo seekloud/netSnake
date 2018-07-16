@@ -12,25 +12,25 @@ import scala.util.Try
   * Date: 7/16/2018
   * Time: 1:32 PM
   */
-object DecoderWithFailure {
+object DecoderWithFailureTmp {
 
-  sealed abstract class DecoderFailure(val message: String) {
+  sealed abstract class DecoderFailureTmp(val message: String) {
     override def toString = s"DecoderFailure($message)"
   }
 
-  final object DecoderFailure {
-    def apply(message: String): DecoderFailure = new DecoderFailure(message) {}
+  final object DecoderFailureTmp {
+    def apply(message: String): DecoderFailureTmp = new DecoderFailureTmp(message) {}
 
     def invalidType(clazz: String, value: String) =
-      DecoderFailure(s"$value's type is not $clazz")
+      DecoderFailureTmp(s"$value's type is not $clazz")
 
     def missingField(field: String, value: String) =
-      DecoderFailure(s"$field is missing in $value")
+      DecoderFailureTmp(s"$field is missing in $value")
   }
 
 
   trait Decoder[A] {
-    def decode(buffer: MiddleBuffer): Either[DecoderFailure, A]
+    def decode(buffer: MiddleBuffer): Either[DecoderFailureTmp, A]
   }
 
   object Decoder {
@@ -38,9 +38,9 @@ object DecoderWithFailure {
     def apply[A](implicit dec: Decoder[A]): Decoder[A] = dec
 
     //constructor
-    def instance[A](func: MiddleBuffer => Either[DecoderFailure, A]): Decoder[A] = {
+    def instance[A](func: MiddleBuffer => Either[DecoderFailureTmp, A]): Decoder[A] = {
       new Decoder[A] {
-        override def decode(buffer: MiddleBuffer): Either[DecoderFailure, A] = {
+        override def decode(buffer: MiddleBuffer): Either[DecoderFailureTmp, A] = {
           func(buffer)
         }
       }
@@ -82,9 +82,9 @@ object DecoderWithFailure {
 
 
     trait CoproductTypeDecoder[A] extends Decoder[A] {
-      def decodeCoproduct(buffer: MiddleBuffer, nameOption: Option[String]): Either[DecoderFailure, A]
+      def decodeCoproduct(buffer: MiddleBuffer, nameOption: Option[String]): Either[DecoderFailureTmp, A]
 
-      override def decode(buffer: MiddleBuffer): Either[DecoderFailure, A] = decodeCoproduct(buffer, None)
+      override def decode(buffer: MiddleBuffer): Either[DecoderFailureTmp, A] = decodeCoproduct(buffer, None)
     }
 
     implicit def coproductDecoder[K <: Symbol, H, T <: Coproduct](
@@ -97,7 +97,7 @@ object DecoderWithFailure {
         override def decodeCoproduct(
           buffer: MiddleBuffer,
           nameOption: Option[String]
-        ): Either[DecoderFailure, FieldType[K, H] :+: T] = {
+        ): Either[DecoderFailureTmp, FieldType[K, H] :+: T] = {
           val nameInWitness = witness.value.name
           val value = witness.value
           for {
@@ -129,17 +129,17 @@ object DecoderWithFailure {
         override def decodeCoproduct(
           buffer: MiddleBuffer,
           nameOption: Option[String]
-        ): Either[DecoderFailure, CNil] = {
-          Left(DecoderFailure("it should never get to cNilInstance."))
+        ): Either[DecoderFailureTmp, CNil] = {
+          Left(DecoderFailureTmp("it should never get to cNilInstance."))
         }
       }
     }
 
     //instance[CNil] { buffer => throw new Exception("it should never get to cNilInstance.") }
 
-    private def wrapTry[T](func: => T): Either[DecoderFailure, T] = {
+    private def wrapTry[T](func: => T): Either[DecoderFailureTmp, T] = {
       val t = Try(func)
-      t.toEither.left.map(e => DecoderFailure(e.getClass + ":" + e.getMessage))
+      t.toEither.left.map(e => DecoderFailureTmp(e.getClass + ":" + e.getMessage))
     }
 
     implicit val intInstance = instance[Int] { buffer => wrapTry(buffer.getInt()) }
@@ -150,7 +150,7 @@ object DecoderWithFailure {
 
     private def readToArray[A](
       buffer: MiddleBuffer, len: Int, dec: Decoder[A]
-    )(implicit m: ClassTag[A]): Either[DecoderFailure, Array[A]] = {
+    )(implicit m: ClassTag[A]): Either[DecoderFailureTmp, Array[A]] = {
       wrapTry {
         val arr = new Array[A](len)
         var c = 0
