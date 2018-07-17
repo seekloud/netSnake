@@ -31,6 +31,7 @@ package object encoder {
 
     implicit val intEncoder: BytesEncoder[Int] = instance[Int] { (i, buffer) => buffer.putInt(i) }
     implicit val floatEncoder: BytesEncoder[Float] = instance[Float] { (f, buffer) => buffer.putFloat(f) }
+    implicit val doubleEncoder: BytesEncoder[Double] = instance[Double] { (d, buffer) => buffer.putDouble(d) }
     implicit val stringEncoder: BytesEncoder[String] = instance[String] { (s, buffer) => buffer.putString(s) }
     implicit val booleanEncoder: BytesEncoder[Boolean] = instance[Boolean] { (b, buffer) => buffer.putByte(if (b) 1.toByte else 0.toByte) }
 

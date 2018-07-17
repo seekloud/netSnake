@@ -12,7 +12,7 @@ object Protocol {
 
 
   sealed trait Msg
-  case class TextMsg(id: Int, data: String, value: Float) extends Msg
+  case class TextMsg(id: Int, data: String, value: Float, d: Double) extends Msg
   case class MultiTextMsg(id: Int, b: Option[Boolean], ls: List[TextMsg]) extends Msg
 
 

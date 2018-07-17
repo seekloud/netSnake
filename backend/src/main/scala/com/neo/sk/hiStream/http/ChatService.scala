@@ -62,7 +62,7 @@ trait ChatService {
       .collect {
         case TextMessage.Strict(msg) =>
           log.info(s"msg from webSocket: $msg")
-          TextMsg(-1, msg, 100.1f)
+          TextMsg(-1, msg, 100.1f, 1.000000000000003)
         case BinaryMessage.Strict(bMsg) =>
 
           //
@@ -88,7 +88,7 @@ trait ChatService {
               case Right(v) => v
               case Left(e) =>
                 println(s"decode error: ${e.message}")
-                TextMsg(-1, "decode error", 9.1f)
+                TextMsg(-1, "decode error", 9.1f, 1.00000000002)
             }
 
 

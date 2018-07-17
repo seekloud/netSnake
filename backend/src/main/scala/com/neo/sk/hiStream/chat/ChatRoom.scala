@@ -84,31 +84,31 @@ class RoomMaster extends Actor {
 
   override def receive: Receive = {
     case "\u0001" =>
-      val m = TextMsg(123, s"heartbeat", 0.123f)
+      val m = TextMsg(123, s"heartbeat", 0.123f, 0.00000001)
       dispatch(m)
     case JoinRoom(id, name, userRef) =>
       log.info(s"$id joined room by [$name]")
       peer = Some(userRef)
-      val m = TextMsg(0, s"welcome [$name]", 0.1f)
+      val m = TextMsg(0, s"welcome [$name]", 0.1f, 0.009)
       dispatch(m)
     case msg: Msg => msg match {
-      case m@TextMsg(id, data, value) =>
+      case m@TextMsg(id, data, value, dd) =>
         log.info(s"got: $m")
         val rep =
           if (data.startsWith("x3")) {
             val ls = (1 to 3).map { i =>
-              TextMsg(id, s"i got your msg[$data]", i*0.1f)
+              TextMsg(id, s"i got your msg[$data]", i*0.1f, i*0.0001)
             }
             MultiTextMsg(id, None, ls.toList)
           } else {
-            TextMsg(id, s"i got your msg[$data]", value + 0.1f)
+            TextMsg(id, s"i got your msg[$data]", value + 0.1f, 0.0000001)
           }
         dispatch(rep)
       case m@MultiTextMsg(id, d, ls) =>
         log.info(s"got: $m")
         var c = 0.0f
         ls.foreach { r =>
-          val rep = TextMsg(id, s"multiMsg part msg[${r.data}]", c)
+          val rep = TextMsg(id, s"multiMsg part msg[${r.data}]", c, 0.0000001)
           c += 0.1f
           dispatch(rep)
         }
@@ -119,7 +119,7 @@ class RoomMaster extends Actor {
       peer = None
     case x =>
       log.info(s"got unknown msg: $x")
-      val rep = TextMsg(9999, s"i got your msg[${x.toString}]", 0.999f)
+      val rep = TextMsg(9999, s"i got your msg[${x.toString}]", 0.999f, 0.000000003)
       dispatch(rep)
   }
 

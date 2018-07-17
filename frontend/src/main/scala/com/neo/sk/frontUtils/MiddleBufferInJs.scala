@@ -64,6 +64,13 @@ class MiddleBufferInJs private() extends MiddleBuffer {
     this
   }
 
+  override def putDouble(d: Double): MiddleBufferInJs = {
+    checkCapacity(8)
+    data.setFloat64(index, d, littleEndian = false)
+    index += 8
+    this
+  }
+
 
   override def putString(s: String): MiddleBuffer = {
     val bytes = s.getBytes("utf-8")
@@ -106,6 +113,13 @@ class MiddleBufferInJs private() extends MiddleBuffer {
     val f = data.getFloat32(index, littleEndian = false)
     index += 4
     f
+  }
+
+  override def getDouble(): Double = {
+    checkCapacity(8)
+    val d = data.getFloat64(index, littleEndian = false)
+    index += 8
+    d
   }
 
   override def result(): js.typedarray.ArrayBuffer = {

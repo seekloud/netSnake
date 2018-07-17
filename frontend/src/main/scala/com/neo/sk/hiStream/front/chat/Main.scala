@@ -101,7 +101,7 @@ object MainPage extends Component {
 
           bytesDecode[Msg](middleDataInJs) match {
             case Right(data) => data match {
-              case m@TextMsg(id, data, value) =>
+              case m@TextMsg(id, data, value, dd) =>
                 println(s"got m=$m")
                 messageBoard.update { current =>
                   current + "\n" +
@@ -202,11 +202,11 @@ object MainPage extends Component {
       val msg: Msg =
         if (input.startsWith("3x")) {
           val ls = (1 to 3).map { i =>
-            TextMsg(id, input, 0.1f * i)
+            TextMsg(id, input, 0.1f * i, 1.0000000000001)
           }
           MultiTextMsg(id, Some(true), ls.toList)
         } else {
-          TextMsg(id, input, id.toFloat / 1000)
+          TextMsg(id, input, id.toFloat / 1000, 1.0000000000000003)
         }
 
       //test error msg.

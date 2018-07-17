@@ -47,6 +47,12 @@ class MiddleBufferInJvm private() extends MiddleBuffer {
     this
   }
 
+  override def putDouble(d: Double): MiddleBufferInJvm = {
+    data.putDouble(d)
+    this
+  }
+
+
   override def getByte(): Byte = {
     val rst = data.get()
 //    println(s"getByte: int=[$rst]")
@@ -68,6 +74,7 @@ class MiddleBufferInJvm private() extends MiddleBuffer {
 
   override def getFloat(): Float = data.getFloat()
 
+  override def getDouble(): Double = data.getDouble
 
   override def result(): Array[Byte] = {
     val length = data.position()
@@ -81,4 +88,6 @@ class MiddleBufferInJvm private() extends MiddleBuffer {
     }
     rst
   }
+
+
 }

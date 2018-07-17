@@ -74,4 +74,14 @@ class MiddleBufferForTest(
     this
   }
 
+  override def putDouble(d: Double): MiddleBuffer = {
+    internalList.append(d.toString)
+    this
+  }
+
+  override def getDouble(): Double = {
+    val d = internalList(index).toDouble
+    index += 1
+    d
+  }
 }

@@ -27,6 +27,8 @@ trait MiddleBuffer {
 
   def putFloat(f: Float): MiddleBuffer
 
+  def putDouble(d: Double): MiddleBuffer
+
   /*
     def putIntArray(ls: Array[Int]): MiddleBuffer = putXArray(putInt)(ls)
 
@@ -60,6 +62,8 @@ trait MiddleBuffer {
   def getInt(): Int
 
   def getFloat(): Float
+
+  def getDouble(): Double
 
 /*
   def getIntArray(): Array[Int] = getXArray(getInt)

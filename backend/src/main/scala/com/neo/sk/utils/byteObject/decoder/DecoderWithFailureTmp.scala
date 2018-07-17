@@ -144,6 +144,7 @@ object DecoderWithFailureTmp {
 
     implicit val intInstance = instance[Int] { buffer => wrapTry(buffer.getInt()) }
     implicit val floatInstance = instance[Float](buffer => wrapTry(buffer.getFloat()))
+    implicit val doubleInstance = instance[Double](buffer => wrapTry(buffer.getDouble()))
     implicit val stringInstance = instance[String](buffer => wrapTry(buffer.getString()))
     implicit val booleanInstance = instance[Boolean](buffer => wrapTry(buffer.getByte()).right.map(_ == 1.toByte))
 

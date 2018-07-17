@@ -16,12 +16,14 @@ object TmpTest {
   import io.circe.syntax._
 
   sealed trait TmpMsg
+
   case class Action(name: String, value: Float) extends TmpMsg
+
   case class MultiAction(name: String, a1: Action, a2: Action) extends TmpMsg
 
-  def main(args: Array[String]): Unit = {
 
 
+  def main1(args: Array[String]): Unit = {
 
     println("hello, world.")
 
