@@ -54,7 +54,7 @@ trait ChatService {
     }
   }
 
-  val sendBuffer = new MiddleBufferInJvm(2048)
+  val sendBuffer = new MiddleBufferInJvm(4096)
 
 
   def webSocketChatFlow(nickname: String): Flow[Message, Message, Any] =
@@ -65,24 +65,8 @@ trait ChatService {
           TextMsg(-1, msg, 100.1f, 1.000000000000003)
         case BinaryMessage.Strict(bMsg) =>
 
-          //
-          //          val arr = bMsg.asByteBuffer
-          //          println(s"arr length: ${arr.length}")
-          //          println(s"arr: ${arr.mkString(",")}")
-
-
+          //decode process.
           val buffer = new MiddleBufferInJvm(bMsg.asByteBuffer)
-
-          /*
-                    val testMessage = TestMessage.decode(middleData)
-
-                    println(s"test msg decode, id=${testMessage.id}")
-                    println(s"test msg decode, data=${testMessage.data}")
-                    println(s"test msg decode, ls=${testMessage.ls.mkString(",")}")
-                    val msg = testMessage.data
-          */
-
-
           val msg =
             bytesDecode[Msg](buffer) match {
               case Right(v) => v
@@ -91,45 +75,14 @@ trait ChatService {
                 TextMsg(-1, "decode error", 9.1f, 1.00000000002)
             }
 
-
-          /*          val msg = DecoderWithFailure.Decoder[Msg].decode(buffer) match {
-                      case Right(v) => v
-                      case Left(e) =>
-                        println(s"decode error: ${e.message}")
-                        TextMsg(-1, "decode error", 9.1f)
-                    }*/
-
-          /*
-          val buffer = bMsg.asByteBuffer
-          val len = buffer.get().toShort
-          val bytes = new Array[Byte](len)
-          println(s"msg bytes len: $len")
-          for( i <- 0 until len){
-            bytes(i) = buffer.get()
-            println(s"get byte($i): ${bytes(i)}")
-          }
-          val msg = new String(bytes, "utf-8")*/
-
-          //println(s"got BinaryMessage $msg, len=${msg.length} size=${bMsg.toList.length}")
-
-          //TODO here.
           msg
-        // unpack incoming WS text messages...
-        // This will lose (ignore) messages not received in one chunk (which is
-        // unlikely because chat messages are small) but absolutely possible
-        // FIXME: We need to handle TextMessage.Streamed as well.
       }
       .via(chatRoom.join(idGenerator.getAndIncrement(), nickname)) // ... and route them through the chatFlow ...
-      //.map { msg => TextMessage.Strict(msg) // ... pack outgoing messages into WS JSON messages ...
-      .map {
-      //msg => BinaryMessage.Strict(ByteString(str2byteBuffer(msg))) // ... pack outgoing messages into WS JSON messages ...
-
-      msg =>
-        BinaryMessage.Strict(ByteString(
-          msg.fillMiddleBuffer(sendBuffer).result()
-        )) // ... pack outgoing messages into WS JSON messages ...
-
-
+      .map { msg =>
+      BinaryMessage.Strict(ByteString(
+        //encoded process
+        msg.fillMiddleBuffer(sendBuffer).result()
+      )) // ... pack outgoing messages into WS JSON messages ...
     }.withAttributes(ActorAttributes.supervisionStrategy(decider)) // ... then log any processing errors on stdin
 
 

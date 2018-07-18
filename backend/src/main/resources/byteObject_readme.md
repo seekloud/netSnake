@@ -59,6 +59,7 @@
     }
   //msg 就可以直接交给Actor处理了;
   ```
+  具体参看backend：com.neo.sk.hiStream.http.ChatService
 
 
 ### In Js
@@ -88,3 +89,4 @@
     }
   }
   ```
+  具体参看frontend：com.neo.sk.hiStream.front.chat.Main
