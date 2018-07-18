@@ -29,6 +29,14 @@ trait MiddleBuffer {
 
   def putDouble(d: Double): MiddleBuffer
 
+  def putLong(l: Long): MiddleBuffer
+
+  def putBoolean(b: Boolean): MiddleBuffer
+
+  def putChar(c: Char): MiddleBuffer
+
+  def putShort(s: Short): MiddleBuffer
+
   /*
     def putIntArray(ls: Array[Int]): MiddleBuffer = putXArray(putInt)(ls)
 
@@ -65,24 +73,33 @@ trait MiddleBuffer {
 
   def getDouble(): Double
 
-/*
-  def getIntArray(): Array[Int] = getXArray(getInt)
+  def getLong(): Long
 
-  def getFloatArray(): Array[Float] = getXArray(getFloat)
+  def getShort(): Short
 
-  def getStringArray(): Array[String] = getXArray(getString)
+  def getBoolean(): Boolean
 
-  private def getXArray[T](getFunc: () => T)(implicit m: ClassTag[T]): Array[T] = {
-    val len = getInt()
-    val ls = new Array[T](len)
-    var c = 0
-    while (c < len) {
-      ls(c) = getFunc()
-      c += 1
+  def getChar(): Char
+
+
+  /*
+    def getIntArray(): Array[Int] = getXArray(getInt)
+
+    def getFloatArray(): Array[Float] = getXArray(getFloat)
+
+    def getStringArray(): Array[String] = getXArray(getString)
+
+    private def getXArray[T](getFunc: () => T)(implicit m: ClassTag[T]): Array[T] = {
+      val len = getInt()
+      val ls = new Array[T](len)
+      var c = 0
+      while (c < len) {
+        ls(c) = getFunc()
+        c += 1
+      }
+      ls
     }
-    ls
-  }
-*/
+  */
 
 }
 

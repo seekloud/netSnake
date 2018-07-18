@@ -33,7 +33,11 @@ package object encoder {
     implicit val floatEncoder: BytesEncoder[Float] = instance[Float] { (f, buffer) => buffer.putFloat(f) }
     implicit val doubleEncoder: BytesEncoder[Double] = instance[Double] { (d, buffer) => buffer.putDouble(d) }
     implicit val stringEncoder: BytesEncoder[String] = instance[String] { (s, buffer) => buffer.putString(s) }
-    implicit val booleanEncoder: BytesEncoder[Boolean] = instance[Boolean] { (b, buffer) => buffer.putByte(if (b) 1.toByte else 0.toByte) }
+    implicit val booleanEncoder: BytesEncoder[Boolean] = instance[Boolean] { (b, buffer) => buffer.putBoolean(b)}
+    implicit val byteEncoder: BytesEncoder[Byte] = instance[Byte] { (b, buffer) => buffer.putByte(b) }
+    implicit val charEncoder: BytesEncoder[Char] = instance[Char] { (c, buffer) => buffer.putChar(c)}
+    implicit val shortEncoder: BytesEncoder[Short] = instance[Short] { (s, buffer) => buffer.putShort(s) }
+    implicit val longEncoder: BytesEncoder[Long] = instance[Long] { (l, buffer) => buffer.putLong(l) }
 
 
     implicit def seqEncoder[A](implicit enc: BytesEncoder[A]): BytesEncoder[Seq[A]] = {

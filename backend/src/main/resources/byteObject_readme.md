@@ -25,7 +25,7 @@
    case class MultiTextMsg(id: Int, b: Option[Boolean], ls: List[TextMsg]) extends Msg
 
  ```
- 注意：由于js环境中ArrayBuffer不支持int64的读写，所以目前类的定义，不支持Long类型的属性；
+ 目前已经支持全部scala基础类型；
  
 1. 将`trait MiddleBuffer`拷贝到shared下;
 2. 将`MiddleBufferInJvm`拷贝到`backend`下;

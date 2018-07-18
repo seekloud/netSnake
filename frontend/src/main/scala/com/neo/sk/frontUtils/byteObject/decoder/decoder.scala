@@ -147,7 +147,11 @@ package object decoder {
     implicit val floatInstance = instance[Float](buffer => wrapTry(buffer.getFloat()))
     implicit val doubleInstance = instance[Double](buffer => wrapTry(buffer.getDouble()))
     implicit val stringInstance = instance[String](buffer => wrapTry(buffer.getString()))
-    implicit val booleanInstance = instance[Boolean](buffer => wrapTry(buffer.getByte()).right.map(_ == 1.toByte))
+    implicit val booleanInstance = instance[Boolean](buffer => wrapTry(buffer.getBoolean()))
+    implicit val charInstance = instance[Char](buffer => wrapTry(buffer.getChar()))
+    implicit val byteInstance = instance[Byte](buffer => wrapTry(buffer.getByte()))
+    implicit val shortInstance = instance[Short](buffer => wrapTry(buffer.getShort()))
+    implicit val longInstance = instance[Long](buffer => wrapTry(buffer.getLong()))
 
 
     private def readToArray[A](

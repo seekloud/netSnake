@@ -63,11 +63,11 @@ class MiddleBufferForTest(
     s
   }
 
-/*
-  def back(): Unit = {
-    index -= 1
-  }
-*/
+  /*
+    def back(): Unit = {
+      index -= 1
+    }
+  */
 
   override def putString(s: String): MiddleBuffer = {
     internalList.append(s)
@@ -83,5 +83,50 @@ class MiddleBufferForTest(
     val d = internalList(index).toDouble
     index += 1
     d
+  }
+
+  override def putLong(l: Long): MiddleBuffer = {
+    internalList.append(l.toString)
+    this
+  }
+
+  override def putBoolean(b: Boolean): MiddleBuffer = {
+    internalList.append(b.toString)
+    this
+  }
+
+  override def putChar(c: Char): MiddleBuffer = {
+    internalList.append(c.toString)
+    this
+  }
+
+  override def getLong(): Long = {
+    val l = internalList(index).toLong
+    index += 1
+    l
+  }
+
+  override def getShort(): Short = {
+    val s = internalList(index).toShort
+    index += 1
+    s
+  }
+
+  override def getBoolean(): Boolean = {
+    val b = internalList(index).toBoolean
+    index += 1
+    b
+  }
+
+
+  override def getChar(): Char = {
+    val c = internalList(index).toCharArray
+    index += 1
+    c(0)
+  }
+
+  override def putShort(s: Short): MiddleBuffer = {
+    internalList.append(s.toString)
+    this
   }
 }

@@ -104,7 +104,7 @@ class RoomMaster extends Actor {
             TextMsg(id, s"i got your msg[$data]", value + 0.1f, 0.0000001)
           }
         dispatch(rep)
-      case m@MultiTextMsg(id, d, ls) =>
+      case m@MultiTextMsg(id, d, ls, l) =>
         log.info(s"got: $m")
         var c = 0.0f
         ls.foreach { r =>

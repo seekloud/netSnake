@@ -105,7 +105,7 @@ object MainPage extends Component {
                   current + "\n" +
                   s"$username: " + data
                 }
-              case m@MultiTextMsg(id, d, ls) =>
+              case m@MultiTextMsg(id, d, ls, l) =>
                 println(s"got m=$m")
                 val msg = ls.map { r =>
                   s"$username: m[" + r.data + "]"
