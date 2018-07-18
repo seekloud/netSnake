@@ -17,7 +17,8 @@
 
 
 ## Example
-说了这么多, 其实使用起来非常非常简单, 假设消息定义如下：
+说了这么多, 其实使用起来非常非常简单, 代码在本工程的netSnake_back分支下； 
+例子，假设消息定义如下：
  ```
    sealed trait Msg
    case class TextMsg(id: Int, data: String, value: Float) extends Msg
