@@ -9,9 +9,9 @@ name := "hiStream"
 val scalaV = "2.12.8"
 
 val projectName = "hiStream"
-val projectVersion = "1.2.1"
+val projectVersion = "1.2.2"
 
-val projectMainClass = "com.neo.sk.hiStream.Boot"
+val projectMainClass = "org.seekloud.hiStream.Boot"
 
 def commonSettings = Seq(
   version := projectVersion,
