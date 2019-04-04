@@ -1,16 +1,17 @@
 logLevel := Level.Warn
 //val sbtRevolverV = "0.8.0"
+//val sbtRevolverV = "0.8.0"
 val sbtRevolverV = "0.9.1"
 // val sbtAssemblyV = "0.13.0"
 val sbtAssemblyV = "0.14.6"
 //val sbtPackV = "0.9.2"
-val sbtPackV = "0.10.1"
-val sbtScalaJsV = "0.6.24"
+val sbtPackV = "0.12"
+val sbtScalaJsV = "0.6.26"
 //val coursierV = "1.0.0-M15"
 //val coursierV = "1.0.0-RC3"
-val buildinfoV = "0.6.1"
+val coursierV = "1.0.0"
 
-addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "0.5.0")
+addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "0.6.0")
 
 
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % sbtScalaJsV)

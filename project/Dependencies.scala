@@ -9,13 +9,11 @@ import sbt._
 object Dependencies {
 
 
-
-
   val slickV = "3.2.3"
-  val akkaV = "2.5.13"
-  val akkaHttpV = "10.1.3"
-  val scalaXmlV = "1.1.0"
-  val circeVersion = "0.9.3"
+  val akkaV = "2.5.21"
+  val akkaHttpV = "10.1.7"
+  val scalaXmlV = "1.1.1"
+  val circeVersion = "0.11.1"
 
   val scalaJsDomV = "0.9.6"
   val scalaTagsV = "0.6.7"
@@ -25,8 +23,8 @@ object Dependencies {
 
 
   val akkaSeq = Seq(
-    "com.typesafe.akka" %% "akka-actor" % akkaV withSources (),
-    "com.typesafe.akka" %% "akka-actor-typed" % akkaV withSources (),
+    "com.typesafe.akka" %% "akka-actor" % akkaV withSources(),
+    "com.typesafe.akka" %% "akka-actor-typed" % akkaV withSources(),
     "com.typesafe.akka" %% "akka-slf4j" % akkaV,
     "com.typesafe.akka" %% "akka-stream" % akkaV
   )
@@ -58,7 +56,6 @@ object Dependencies {
   val ehcache = "net.sf.ehcache" % "ehcache" % "2.10.4"
 
 
-
   val backendDependencies: Seq[ModuleID] =
     Dependencies.akkaSeq ++
     Dependencies.akkaHttpSeq ++
@@ -76,8 +73,9 @@ object Dependencies {
       Dependencies.codec,
       Dependencies.postgresql,
       Dependencies.asynchttpclient,
-      Dependencies.ehcache
-     // "com.lihaoyi" %% "upickle" % "0.6.6"
+      Dependencies.ehcache,
+      "org.seekloud" %% "byteobject" % "0.1.2"
+      // "com.lihaoyi" %% "upickle" % "0.6.6"
     )
 
 

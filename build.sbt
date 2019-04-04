@@ -5,8 +5,8 @@ import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 
 name := "hiStream"
 
-val scalaV = "2.12.6"
-//val scalaV = "2.11.8"
+//val scalaV = "2.12.6"
+val scalaV = "2.12.8"
 
 val projectName = "hiStream"
 val projectVersion = "1.2.1"

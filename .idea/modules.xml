@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/.js-shared.iml" filepath="$PROJECT_DIR$/.idea/modules/.js-shared.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/backend-hiStream.iml" filepath="$PROJECT_DIR$/.idea/modules/backend-hiStream.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/frontend.iml" filepath="$PROJECT_DIR$/.idea/modules/frontend.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/hiStream.iml" filepath="$PROJECT_DIR$/.idea/modules/hiStream.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/hiStream-build.iml" filepath="$PROJECT_DIR$/.idea/modules/hiStream-build.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/hiStream-sources.iml" filepath="$PROJECT_DIR$/.idea/modules/hiStream-sources.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/shared.iml" filepath="$PROJECT_DIR$/.idea/modules/shared.iml" />
+    </modules>
+  </component>
+</project>
