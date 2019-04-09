@@ -6,10 +6,10 @@
     <profile name="sbt 2" modules="backend-hiStream,hiStream,shared">
       <option name="featureWarnings" value="true" />
     </profile>
-    <profile name="sbt 3" modules=".js-shared,frontend">
+    <profile name="sbt 4" modules=".js-shared,frontend">
       <option name="featureWarnings" value="true" />
       <plugins>
-        <plugin path="C:\Users\zta\.ivy2\cache\org.scala-js\scalajs-compiler_2.12.6\jars\scalajs-compiler_2.12.6-0.6.24.jar" />
+        <plugin path="C:\Users\zta\.ivy2\cache\org.scala-js\scalajs-compiler_2.12.8\jars\scalajs-compiler_2.12.8-0.6.26.jar" />
       </plugins>
     </profile>
   </component>

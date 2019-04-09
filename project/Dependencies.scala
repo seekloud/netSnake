@@ -64,8 +64,6 @@ object Dependencies {
       Dependencies.scalaXml,
       Dependencies.slick,
       Dependencies.slickCodeGen,
-      Dependencies.scalikejdbc,
-      Dependencies.scalikejdbcConfig,
       Dependencies.scalatags,
       Dependencies.nscalaTime,
       Dependencies.hikariCP,
@@ -73,9 +71,7 @@ object Dependencies {
       Dependencies.codec,
       Dependencies.postgresql,
       Dependencies.asynchttpclient,
-      Dependencies.ehcache,
-      "org.seekloud" %% "byteobject" % "0.1.2"
-      // "com.lihaoyi" %% "upickle" % "0.6.6"
+      Dependencies.ehcache
     )
 
 
